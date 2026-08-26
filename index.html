@@ -1,116 +1,351 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuarSMP — Ванильное выживание</title>
+    <title>LuarSMP — ванильное выживание</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* ===== Ваши стили (оставьте свои, я лишь добавлю пару классов) ===== */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { background: #0a0e17; font-family: 'Inter', sans-serif; color: #e6edf3; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        /* ... все ваши стили для шапки, карточек и т.д. ... */
+        /* ===== Глобальные переменные ===== */
+        :root {
+            --bg: #0b0e1a;
+            --surface: rgba(255,255,255,0.05);
+            --surface-hover: rgba(255,255,255,0.10);
+            --border: rgba(255,255,255,0.08);
+            --text: #f0f4fa;
+            --text-secondary: #9aabbf;
+            --accent: #6c8cff;
+            --accent-glow: rgba(108,140,255,0.2);
+            --shadow: 0 20px 60px rgba(0,0,0,0.5);
+            --radius: 24px;
+            --transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        [data-theme="light"] {
+            --bg: #f2f6fa;
+            --surface: rgba(0,0,0,0.03);
+            --surface-hover: rgba(0,0,0,0.06);
+            --border: rgba(0,0,0,0.06);
+            --text: #1a2634;
+            --text-secondary: #5a6f85;
+            --accent: #3b6eff;
+            --accent-glow: rgba(59,110,255,0.15);
+            --shadow: 0 20px 60px rgba(0,0,0,0.06);
+        }
 
-        /* ===== Модалка ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background var(--transition), color var(--transition);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ===== Анимированный фон с частицами ===== */
+        #particles-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            width: 100%;
+            height: 100%;
+        }
+        .bg-glow {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 20% 30%, var(--accent-glow), transparent 60%),
+                        radial-gradient(circle at 80% 70%, rgba(179,136,255,0.1), transparent 50%);
+            transition: background var(--transition);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== Шапка ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 0 16px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .header .brand {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent), #b388ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        .header .controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .header .ip {
+            background: var(--surface);
+            backdrop-filter: blur(8px);
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            transition: border-color var(--transition);
+        }
+        .header .ip i { color: var(--accent); margin-right: 8px; }
+        .header .ip:hover { border-color: var(--accent); }
+        .theme-toggle {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 18px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            backdrop-filter: blur(8px);
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .theme-toggle:hover { background: var(--surface-hover); border-color: var(--accent); }
+
+        /* ===== Герой ===== */
+        .hero {
+            margin-bottom: 48px;
+            animation: fadeUp 0.8s ease forwards;
+            opacity: 0;
+        }
+        .hero h1 {
+            font-size: 3.2rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+        .hero h1 i { color: var(--accent); margin-right: 10px; }
+        .hero .sub {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            font-weight: 300;
+        }
+        .hero .badge {
+            display: inline-block;
+            margin-top: 16px;
+            background: var(--surface);
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(8px);
+        }
+        .hero .badge i { color: var(--accent); margin-right: 6px; }
+
+        /* ===== Карточки товаров ===== */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 24px;
+            margin: 32px 0 56px;
+        }
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border-radius: var(--radius);
+            padding: 28px 20px 24px;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: var(--shadow);
+            opacity: 0;
+            animation: cardAppear 0.6s ease forwards;
+        }
+        .card:nth-child(1) { animation-delay: 0.05s; }
+        .card:nth-child(2) { animation-delay: 0.10s; }
+        .card:nth-child(3) { animation-delay: 0.15s; }
+        .card:nth-child(4) { animation-delay: 0.20s; }
+        .card:nth-child(5) { animation-delay: 0.25s; }
+        .card:nth-child(6) { animation-delay: 0.30s; }
+        .card:nth-child(7) { animation-delay: 0.35s; }
+        .card:nth-child(8) { animation-delay: 0.40s; }
+        .card:nth-child(9) { animation-delay: 0.45s; }
+
+        @keyframes cardAppear {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 60px var(--accent-glow);
+        }
+        .card .icon {
+            font-size: 2.6rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+            transition: transform 0.4s, color 0.4s;
+        }
+        .card:hover .icon { transform: scale(1.15) rotate(3deg); color: #b388ff; }
+        .card .rank {
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-bottom: 4px;
+        }
+        .card .price {
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--accent);
+            margin: 8px 0 6px;
+            transition: color 0.4s;
+        }
+        .card:hover .price { color: #b388ff; }
+        .card .price small { font-size: 1rem; font-weight: 400; color: var(--text-secondary); }
+        .card .desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 6px 0 20px;
+            min-height: 48px;
+            transition: color 0.4s;
+        }
+        .card:hover .desc { color: var(--text); }
+        .card .btn-buy {
+            width: 100%;
+            padding: 14px 0;
+            border-radius: 60px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+            letter-spacing: 0.3px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card .btn-buy::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--accent), #b388ff);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .card .btn-buy span { position: relative; z-index: 1; }
+        .card .btn-buy:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+        .card .btn-buy:hover::after { opacity: 1; }
+        .card .btn-buy:active { transform: scale(0.97); }
+
+        /* ===== Модальное окно ===== */
         .modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(6px);
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
             align-items: center;
             justify-content: center;
             z-index: 1000;
         }
         .modal-overlay.active { display: flex; }
         .modal {
-            background: #161b22;
-            max-width: 620px;
+            background: var(--bg);
+            max-width: 640px;
             width: 95%;
-            padding: 30px 28px;
-            border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.06);
-            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
-            max-height: 90vh;
+            padding: 32px 28px;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            max-height: 92vh;
             overflow-y: auto;
             position: relative;
+            animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
         .modal .close {
             position: absolute;
             top: 14px;
             right: 20px;
             font-size: 1.8rem;
-            color: #8b949e;
+            color: var(--text-secondary);
             cursor: pointer;
             background: none;
             border: none;
+            transition: color 0.2s, transform 0.2s;
         }
-        .modal .close:hover { color: #e6edf3; }
-        .modal h2 {
-            color: #e6edf3;
-            font-weight: 700;
-            font-size: 1.4rem;
-            margin-bottom: 16px;
-        }
-        .modal label {
-            display: block;
-            font-weight: 500;
-            color: #8b949e;
-            margin: 12px 0 4px;
-            font-size: 0.85rem;
-        }
+        .modal .close:hover { color: var(--text); transform: rotate(90deg); }
+        .modal h2 { color: var(--text); font-weight: 700; font-size: 1.4rem; margin-bottom: 16px; }
+        .modal label { display: block; font-weight: 500; color: var(--text-secondary); margin: 12px 0 4px; font-size: 0.85rem; }
         .modal input[type="text"], .modal input[type="email"] {
             width: 100%;
             padding: 12px 16px;
             border-radius: 12px;
-            border: 1px solid #21262d;
-            background: #0d1117;
-            color: #e6edf3;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
             font-size: 0.95rem;
             outline: none;
             margin-bottom: 8px;
+            transition: border-color 0.2s;
         }
-        .modal input:focus { border-color: #58a6ff; box-shadow: 0 0 0 3px rgba(88,166,255,0.15); }
+        .modal input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
         .modal .agree {
             display: flex;
             align-items: flex-start;
             gap: 10px;
             margin: 16px 0 12px;
             font-size: 0.85rem;
-            color: #8b949e;
+            color: var(--text-secondary);
         }
         .modal .agree input[type="checkbox"] {
             margin-top: 3px;
-            accent-color: #58a6ff;
+            accent-color: var(--accent);
             width: 18px;
             height: 18px;
             flex-shrink: 0;
         }
-        .modal .agree a {
-            color: #58a6ff;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-        .modal .agree a:hover { color: #79c0ff; }
+        .modal .agree a { color: var(--accent); text-decoration: underline; cursor: pointer; }
+        .modal .agree a:hover { color: #b388ff; }
 
-        /* Стили для текста документов */
         .offer-text {
             font-size: 0.8rem;
-            color: #c9d1d9;
-            background: #0d1117;
+            color: var(--text-secondary);
+            background: var(--surface);
             padding: 16px;
             border-radius: 12px;
-            border-left: 3px solid #58a6ff;
+            border-left: 3px solid var(--accent);
             margin: 8px 0 16px;
-            max-height: 300px;
+            max-height: 340px;
             overflow-y: auto;
             display: none;
             white-space: pre-wrap;
             line-height: 1.6;
         }
         .offer-text.show { display: block; }
-        .offer-text strong { color: #e6edf3; }
+        .offer-text strong { color: var(--text); }
         .offer-text .section { margin-bottom: 14px; }
 
         .modal .btn-pay {
@@ -123,194 +358,393 @@
             font-size: 1rem;
             border: none;
             cursor: pointer;
-            transition: 0.2s;
+            transition: background 0.2s, transform 0.15s;
         }
         .modal .btn-pay:hover { background: #2ea043; transform: scale(1.02); }
         .modal .btn-pay:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
         .modal .error-msg { color: #f85149; font-size: 0.85rem; margin-top: 6px; display: none; }
         .modal .error-msg.show { display: block; }
+
+        /* ===== Футер ===== */
+        .footer {
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            animation: fadeUp 0.8s ease forwards;
+            opacity: 0;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== Адаптив ===== */
+        @media (max-width: 768px) {
+            .header { flex-direction: column; align-items: stretch; gap: 12px; }
+            .header .controls { flex-wrap: wrap; justify-content: center; }
+            .hero h1 { font-size: 2.6rem; }
+            .cards { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
+            .card { padding: 20px 14px; }
+            .card .price { font-size: 2rem; }
+            .modal { padding: 24px 16px; }
+        }
+        @media (max-width: 480px) {
+            .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .card { padding: 16px 10px; }
+            .card .rank { font-size: 1rem; }
+            .card .price { font-size: 1.6rem; }
+            .hero h1 { font-size: 2rem; }
+        }
     </style>
 </head>
 <body>
+    <!-- ===== Анимированный фон (canvas) ===== -->
+    <canvas id="particles-canvas"></canvas>
+    <div class="bg-glow"></div>
+
     <div class="container">
-        <!-- ===== ВАШ КОНТЕНТ (шапка, герой, карточки) ===== -->
-        <!-- ... (ваши карточки с кнопками .btn-buy, data-product-id и data-rank) ... -->
 
-        <!-- ===== МОДАЛЬНОЕ ОКНО ===== -->
-        <div class="modal-overlay" id="paymentModal">
-            <div class="modal">
-                <button class="close" id="modalClose">&times;</button>
-                <h2>Подтверждение заказа</h2>
-
-                <label>Игровой ник *</label>
-                <input type="text" id="playerName" placeholder="Ваш никнейм" required>
-
-                <label>Email (для чека, опционально)</label>
-                <input type="email" id="playerEmail" placeholder="example@mail.ru">
-
-                <div class="agree">
-                    <input type="checkbox" id="agreeCheck">
-                    <span>
-                        Я принимаю <a id="showOfferLink">условия оферты</a> и даю согласие на
-                        обработку <a id="showPersonalLink">персональных данных</a>.
-                    </span>
-                </div>
-
-                <div id="offerText" class="offer-text">
-                    <div class="section">
-                        <strong>ПУБЛИЧНАЯ ОФЕРТА</strong><br>
-                        о предоставлении доступа к игровому серверу и продаже внутриигровых предметов (услуг)
-                        <br><br>
-                        г. Ставрополь<br>
-                        Дата публикации: 26 августа 2026 г.
-                        <br><br>
-                        Настоящий документ является официальным предложением (публичной офертой) <strong>Чесноков Степан Евгеньевич</strong>, ИНН 263520600902, зарегистрированного в качестве самозанятого (далее – «Исполнитель»), адресованным неограниченному кругу лиц (далее – «Заказчик»), о заключении договора на предоставление доступа к игровому серверу LuarSMP и продаже внутриигровых предметов (далее – «Услуги») на условиях, изложенных ниже.
-                    </div>
-
-                    <div class="section">
-                        <strong>1. Термины и определения</strong><br>
-                        1.1. <strong>Сайт</strong> – интернет-страница, расположенная по адресу https://luarsmp.ru, через которую Заказчик может ознакомиться с Услугами и произвести их оплату.<br>
-                        1.2. <strong>Сервер</strong> – игровой сервер LuarSMP, доступный по адресу play.luarsmp.ru:25565, на котором Исполнитель предоставляет доступ к игровому процессу.<br>
-                        1.3. <strong>Товар</strong> – внутриигровая привилегия, предмет, валюта или иное игровое преимущество, перечисленное на Сайте и доступное для приобретения.<br>
-                        1.4. <strong>Акцепт</strong> – полное и безоговорочное принятие условий настоящей Оферты путём оплаты Товара.
-                    </div>
-
-                    <div class="section">
-                        <strong>2. Предмет договора</strong><br>
-                        2.1. Исполнитель обязуется предоставить Заказчику доступ к Серверу и/или передать Товар (внутриигровые предметы, привилегии, валюту) в соответствии с выбранным Заказчиком пакетом, а Заказчик обязуется оплатить Услуги в порядке и на условиях, предусмотренных настоящей Офертой.<br>
-                        2.2. Перечень и стоимость Товаров размещены на Сайте и являются неотъемлемой частью настоящей Оферты.
-                    </div>
-
-                    <div class="section">
-                        <strong>3. Порядок оказания Услуг</strong><br>
-                        3.1. Для получения Услуг Заказчик обязуется:<br>
-                        - Ознакомиться с условиями настоящей Оферты.<br>
-                        - Выбрать Товар на Сайте и указать свой игровой никнейм (Nickname), используемый на Сервере.<br>
-                        - Оплатить выбранный Товар через платёжную систему, предоставленную на Сайте.<br>
-                        - После оплаты Исполнитель в автоматическом режиме (через плагин или RCON) передаёт Заказчику Товар на Сервере.<br>
-                        3.2. Исполнитель не несёт ответственности за ошибки в указании никнейма Заказчиком. В случае ошибочного указания никнейма Товар не может быть передан другому игроку или возвращён.
-                    </div>
-
-                    <div class="section">
-                        <strong>4. Стоимость Услуг и порядок оплаты</strong><br>
-                        4.1. Стоимость каждого Товара указана на Сайте в рублях Российской Федерации.<br>
-                        4.2. Оплата производится через платёжную систему, доступную на Сайте (TradeMC). Заказчик оплачивает полную стоимость Товара без дополнительных комиссий, если иное не указано на странице оплаты.<br>
-                        4.3. Моментом оплаты считается поступление денежных средств на счёт Исполнителя в полном объёме.
-                    </div>
-
-                    <div class="section">
-                        <strong>5. Права и обязанности сторон</strong><br>
-                        5.1. <strong>Исполнитель обязуется:</strong><br>
-                        - Предоставить доступ к Серверу и/или передать Товар в течение 5 минут после подтверждения оплаты.<br>
-                        - Обеспечить работоспособность Сервера и Сайта в пределах своих технических возможностей.<br>
-                        - Не передавать персональные данные Заказчика третьим лицам, за исключением случаев, предусмотренных законодательством РФ.<br>
-                        5.2. <strong>Заказчик обязуется:</strong><br>
-                        - Соблюдать правила игрового сервера LuarSMP (размещены на Сайте или доступны по запросу).<br>
-                        - Не использовать Сервер и его ресурсы для противоправных действий, распространения вирусов, оскорблений, спама, мошенничества.<br>
-                        - Не нарушать авторские и смежные права на игровой контент.<br>
-                        - Не пытаться взломать, модифицировать или иным образом нарушать работу Сервера и Сайта.<br>
-                        5.3. <strong>Исполнитель имеет право:</strong><br>
-                        - В одностороннем порядке изменять условия настоящей Оферты с предварительным уведомлением на Сайте не менее чем за 3 дня до вступления изменений в силу.<br>
-                        - Приостановить или прекратить доступ Заказчика к Серверу в случае нарушения им правил сервера или условий Оферты без возврата оплаты.<br>
-                        - Отказать в предоставлении Услуг, если Заказчик не достиг возраста 14 лет или не имеет согласия родителей на совершение платежей.<br>
-                        5.4. <strong>Заказчик имеет право:</strong><br>
-                        - Получить Товар в полном объёме в соответствии с условиями оплаты.<br>
-                        - Отказаться от дальнейшего использования Услуг в любое время, однако оплаченные Товары возврату не подлежат (см. п. 6).
-                    </div>
-
-                    <div class="section">
-                        <strong>6. Возврат денежных средств</strong><br>
-                        6.1. Услуги, предоставляемые Исполнителем, являются информационно-развлекательными и не подлежат возврату в соответствии с Постановлением Правительства РФ № 2463 от 31.12.2020 (перечень непродовольственных товаров надлежащего качества, не подлежащих возврату и обмену).<br>
-                        6.2. Возврат денежных средств возможен <strong>ТОЛЬКО</strong> в следующих исключительных случаях:<br>
-                        - Услуга не была оказана по вине Исполнителя (например, Товар не был выдан в течение 24 часов после подтверждения оплаты).<br>
-                        - Ошибка в списании денежных средств (удвоение оплаты и т.п.).<br>
-                        6.3. Для инициирования возврата Заказчик обязан направить письменное заявление на email Исполнителя: <strong>stepan.3mail@mail.ru</strong> с указанием:<br>
-                        - Никнейма на Сервере.<br>
-                        - Даты и суммы платежа.<br>
-                        - Номера транзакции (чек).<br>
-                        - Причины возврата.<br>
-                        6.4. Исполнитель рассматривает заявление в течение 5 рабочих дней и принимает решение. В случае положительного решения возврат осуществляется тем же способом, которым был произведён платёж, в течение 10 рабочих дней.
-                    </div>
-
-                    <div class="section">
-                        <strong>7. Ответственность сторон</strong><br>
-                        7.1. Исполнитель <strong>не несёт ответственности</strong> за:<br>
-                        - Утерю, кражу или порчу внутриигровых предметов по вине самого Заказчика (передача пароля, взлом аккаунта, нарушение правил сервера).<br>
-                        - Перерывы в работе Сервера, вызванные техническими причинами (обновления, DDoS-атаки, сбои оборудования), если длительность перерыва не превышает 24 часов в месяц.<br>
-                        - Действия третьих лиц, направленные на нарушение работы Сервера или Сайта.<br>
-                        - Любые прямые или косвенные убытки Заказчика, связанные с использованием Сервера (включая упущенную выгоду).<br>
-                        7.2. Заказчик несёт полную ответственность за сохранность своего игрового аккаунта и пароля. Передача доступа к аккаунту третьим лицам осуществляется на свой страх и риск.<br>
-                        7.3. За нарушение правил сервера или условий Оферты Исполнитель имеет право ограничить доступ Заказчика к Серверу без возврата оплаты.
-                    </div>
-
-                    <div class="section">
-                        <strong>8. Срок действия оферты и порядок изменения</strong><br>
-                        8.1. Настоящая Оферта вступает в силу с момента её публикации на Сайте и действует бессрочно.<br>
-                        8.2. Исполнитель оставляет за собой право вносить изменения в условия Оферты. Новая редакция Оферты вступает в силу с момента её публикации на Сайте.
-                    </div>
-
-                    <div class="section">
-                        <strong>9. Применимое право и разрешение споров</strong><br>
-                        9.1. Настоящая Оферта регулируется законодательством Российской Федерации.<br>
-                        9.2. Все споры решаются путём переговоров. При недостижении согласия спор передаётся на рассмотрение в суд по месту нахождения Исполнителя.
-                    </div>
-
-                    <div class="section">
-                        <strong>10. Реквизиты Исполнителя</strong><br>
-                        <strong>Исполнитель:</strong> Чесноков Степан Евгеньевич<br>
-                        <strong>ИНН:</strong> 263520600902<br>
-                        <strong>Адрес:</strong> г. Ставрополь, ул. Пирогова, д. 92, подъезд 1, кв. 14<br>
-                        <strong>Электронная почта:</strong> stepan.3mail@mail.ru
-                    </div>
-
-                    <div class="section">
-                        <strong>СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ</strong><br>
-                        Я, действуя свободно, своей волей и в своём интересе, даю своё согласие <strong>Чесноков Степан Евгеньевич</strong> (ИНН 263520600902, адрес: г. Ставрополь, ул. Пирогова, д. 92, подъезд 1, кв. 14) (далее – «Оператор») на обработку моих персональных данных, предоставленных мной при оплате Услуг на сайте <strong>https://luarsmp.ru</strong>.
-                        <br><br>
-                        <strong>1. Перечень персональных данных</strong><br>
-                        1.1. Игровой никнейм (Nickname), используемый на сервере LuarSMP.<br>
-                        1.2. IP-адрес, с которого осуществляется подключение к Серверу и Сайту.<br>
-                        1.3. Адрес электронной почты (e-mail) — при его указании Заказчиком.<br>
-                        1.4. Сведения о платеже (сумма, дата, номер транзакции).
-                        <br><br>
-                        <strong>2. Цели обработки персональных данных</strong><br>
-                        2.1. Оказание информационно-развлекательных услуг (выдача внутриигровых привилегий и предметов).<br>
-                        2.2. Идентификация Заказчика как игрока на Сервере LuarSMP.<br>
-                        2.3. Ведение статистики посещений и улучшение работы Сайта и Сервера.<br>
-                        2.4. Направление чеков и уведомлений об оплате (при указании e-mail).<br>
-                        2.5. Разрешение споров и претензий, связанных с оказанием Услуг.
-                        <br><br>
-                        <strong>3. Перечень действий с персональными данными</strong><br>
-                        Согласие даётся на сбор, запись, систематизацию, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, обезличивание, блокирование, удаление, уничтожение моих персональных данных.
-                        <br><br>
-                        <strong>4. Срок действия согласия</strong><br>
-                        Настоящее согласие действует бессрочно с момента его акцепта (постановки галочки при оформлении заказа) и до момента его отзыва мной в письменной форме.
-                        <br><br>
-                        <strong>5. Отзыв согласия</strong><br>
-                        Я осознаю, что могу отозвать своё согласие в любое время путём отправки письменного уведомления на электронный адрес Оператора: <strong>stepan.3mail@mail.ru</strong>. В случае отзыва согласия Оператор обязан прекратить обработку моих персональных данных и уничтожить их в течение 30 дней, если иное не предусмотрено законодательством РФ.
-                    </div>
-                </div>
-
-                <div id="errorMsg" class="error-msg"></div>
-
-                <button class="btn-pay" id="payButton" disabled>Перейти к оплате</button>
+        <!-- ===== ШАПКА ===== -->
+        <header class="header">
+            <div class="brand">✦ LuarSMP</div>
+            <div class="controls">
+                <span class="ip"><i class="fas fa-server"></i> play.luarsmp.ru</span>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i> <span>Тема</span>
+                </button>
             </div>
+        </header>
+
+        <!-- ===== ГЕРОЙ ===== -->
+        <section class="hero">
+            <h1><i class="fas fa-cube"></i>Ванильное выживание</h1>
+            <div class="sub">Чистый геймплей, никаких модов</div>
+            <span class="badge"><i class="fas fa-users"></i> 0 / 20</span>
+        </section>
+
+        <!-- ===== КАРТОЧКИ ТОВАРОВ ===== -->
+        <div class="cards" id="productsContainer">
+            <!-- Карточка VIP -->
+            <div class="card">
+                <div class="icon"><i class="fas fa-star"></i></div>
+                <div class="rank">VIP</div>
+                <div class="price">19 <small>₽</small></div>
+                <div class="desc">Полёт, киты, приоритет</div>
+                <button class="btn-buy" data-product-id="123" data-rank="VIP"><span>Купить</span></button>
+            </div>
+            <!-- Карточка Premium -->
+            <div class="card">
+                <div class="icon"><i class="fas fa-crown"></i></div>
+                <div class="rank">Premium</div>
+                <div class="price">49 <small>₽</small></div>
+                <div class="desc">Дома, киты, /back</div>
+                <button class="btn-buy" data-product-id="124" data-rank="Premium"><span>Купить</span></button>
+            </div>
+            <!-- Карточка Silver -->
+            <div class="card">
+                <div class="icon"><i class="fas fa-shield"></i></div>
+                <div class="rank">Silver</div>
+                <div class="price">99 <small>₽</small></div>
+                <div class="desc">5 домов, серебряный кит</div>
+                <button class="btn-buy" data-product-id="125" data-rank="Silver"><span>Купить</span></button>
+            </div>
+            <!-- Карточка Gold -->
+            <div class="card">
+                <div class="icon"><i class="fas fa-shield-halved"></i></div>
+                <div class="rank">Gold</div>
+                <div class="price">199 <small>₽</small></div>
+                <div class="desc">7 домов, золотой кит</div>
+                <button class="btn-buy" data-product-id="126" data-rank="Gold"><span>Купить</span></button>
+            </div>
+            <!-- Карточка Diamond -->
+            <div class="card">
+                <div class="icon"><i class="fas fa-gem"></i></div>
+                <div class="rank">Diamond</div>
+                <div class="price">299 <small>₽</small></div>
+                <div class="desc">10 домов, алмазный кит</div>
+                <button class="btn-buy" data-product-id="127" data-rank="Diamond"><span>Купить</span></button>
+            </div>
+            <!-- Карточка Platinum -->
+            <div class="card">
+                <div class="icon"><i class="fas fa-bolt"></i></div>
+                <div class="rank">Platinum</div>
+                <div class="price">499 <small>₽</small></div>
+                <div class="desc">12 домов, незеритовый кит</div>
+                <button class="btn-buy" data-product-id="128" data-rank="Platinum"><span>Купить</span></button>
+            </div>
+            <!-- Карточка Rich -->
+            <div class="card">
+                <div class="icon"><i class="fas fa-coins"></i></div>
+                <div class="rank">Rich</div>
+                <div class="price">699 <small>₽</small></div>
+                <div class="desc">15 домов, особый кит</div>
+                <button class="btn-buy" data-product-id="129" data-rank="Rich"><span>Купить</span></button>
+            </div>
+            <!-- Карточка Titanium -->
+            <div class="card">
+                <div class="icon"><i class="fas fa-microchip"></i></div>
+                <div class="rank">Titanium</div>
+                <div class="price">799 <small>₽</small></div>
+                <div class="desc">18 домов, титановый кит</div>
+                <button class="btn-buy" data-product-id="130" data-rank="Titanium"><span>Купить</span></button>
+            </div>
+            <!-- Карточка Prime -->
+            <div class="card" style="border-color: #d4af37;">
+                <div class="icon" style="color: #d4af37;"><i class="fas fa-king"></i></div>
+                <div class="rank" style="color: #d4af37;">Prime</div>
+                <div class="price" style="color: #d4af37;">999 <small>₽</small></div>
+                <div class="desc">25 домов, эксклюзив</div>
+                <button class="btn-buy" data-product-id="131" data-rank="Prime"><span>Купить</span></button>
+            </div>
+        </div>
+
+        <!-- ===== ФУТЕР ===== -->
+        <footer class="footer">
+            © 2026 LuarSMP
+        </footer>
+
+    </div>
+
+    <!-- ===== МОДАЛЬНОЕ ОКНО ===== -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <button class="close" id="modalClose">&times;</button>
+            <h2>Подтверждение заказа</h2>
+
+            <label>Игровой ник *</label>
+            <input type="text" id="playerName" placeholder="Ваш никнейм" required>
+
+            <label>Email (для чека, опционально)</label>
+            <input type="email" id="playerEmail" placeholder="example@mail.ru">
+
+            <div class="agree">
+                <input type="checkbox" id="agreeCheck">
+                <span>
+                    Я принимаю <a id="showOfferLink">условия оферты</a> и даю согласие на
+                    обработку <a id="showPersonalLink">персональных данных</a>.
+                </span>
+            </div>
+
+            <div id="offerText" class="offer-text">
+                <div class="section">
+                    <strong>ПУБЛИЧНАЯ ОФЕРТА</strong><br>
+                    о предоставлении доступа к игровому серверу и продаже внутриигровых предметов (услуг)
+                    <br><br>
+                    г. Ставрополь<br>
+                    Дата публикации: 26 августа 2026 г.
+                    <br><br>
+                    Настоящий документ является официальным предложением (публичной офертой) <strong>Чесноков Степан Евгеньевич</strong>, ИНН 263520600902, зарегистрированного в качестве самозанятого (далее – «Исполнитель»), адресованным неограниченному кругу лиц (далее – «Заказчик»), о заключении договора на предоставление доступа к игровому серверу LuarSMP и продаже внутриигровых предметов (далее – «Услуги») на условиях, изложенных ниже.
+                </div>
+                <div class="section">
+                    <strong>1. Термины и определения</strong><br>
+                    1.1. <strong>Сайт</strong> – интернет-страница, расположенная по адресу https://luarsmp.ru, через которую Заказчик может ознакомиться с Услугами и произвести их оплату.<br>
+                    1.2. <strong>Сервер</strong> – игровой сервер LuarSMP, доступный по адресу play.luarsmp.ru:25565, на котором Исполнитель предоставляет доступ к игровому процессу.<br>
+                    1.3. <strong>Товар</strong> – внутриигровая привилегия, предмет, валюта или иное игровое преимущество, перечисленное на Сайте и доступное для приобретения.<br>
+                    1.4. <strong>Акцепт</strong> – полное и безоговорочное принятие условий настоящей Оферты путём оплаты Товара.
+                </div>
+                <div class="section">
+                    <strong>2. Предмет договора</strong><br>
+                    2.1. Исполнитель обязуется предоставить Заказчику доступ к Серверу и/или передать Товар (внутриигровые предметы, привилегии, валюту) в соответствии с выбранным Заказчиком пакетом, а Заказчик обязуется оплатить Услуги в порядке и на условиях, предусмотренных настоящей Офертой.<br>
+                    2.2. Перечень и стоимость Товаров размещены на Сайте и являются неотъемлемой частью настоящей Оферты.
+                </div>
+                <div class="section">
+                    <strong>3. Порядок оказания Услуг</strong><br>
+                    3.1. Для получения Услуг Заказчик обязуется:<br>
+                    - Ознакомиться с условиями настоящей Оферты.<br>
+                    - Выбрать Товар на Сайте и указать свой игровой никнейм (Nickname), используемый на Сервере.<br>
+                    - Оплатить выбранный Товар через платёжную систему, предоставленную на Сайте.<br>
+                    - После оплаты Исполнитель в автоматическом режиме (через плагин или RCON) передаёт Заказчику Товар на Сервере.<br>
+                    3.2. Исполнитель не несёт ответственности за ошибки в указании никнейма Заказчиком. В случае ошибочного указания никнейма Товар не может быть передан другому игроку или возвращён.
+                </div>
+                <div class="section">
+                    <strong>4. Стоимость Услуг и порядок оплаты</strong><br>
+                    4.1. Стоимость каждого Товара указана на Сайте в рублях Российской Федерации.<br>
+                    4.2. Оплата производится через платёжную систему, доступную на Сайте (TradeMC). Заказчик оплачивает полную стоимость Товара без дополнительных комиссий, если иное не указано на странице оплаты.<br>
+                    4.3. Моментом оплаты считается поступление денежных средств на счёт Исполнителя в полном объёме.
+                </div>
+                <div class="section">
+                    <strong>5. Права и обязанности сторон</strong><br>
+                    5.1. <strong>Исполнитель обязуется:</strong><br>
+                    - Предоставить доступ к Серверу и/или передать Товар в течение 5 минут после подтверждения оплаты.<br>
+                    - Обеспечить работоспособность Сервера и Сайта в пределах своих технических возможностей.<br>
+                    - Не передавать персональные данные Заказчика третьим лицам, за исключением случаев, предусмотренных законодательством РФ.<br>
+                    5.2. <strong>Заказчик обязуется:</strong><br>
+                    - Соблюдать правила игрового сервера LuarSMP (размещены на Сайте или доступны по запросу).<br>
+                    - Не использовать Сервер и его ресурсы для противоправных действий, распространения вирусов, оскорблений, спама, мошенничества.<br>
+                    - Не нарушать авторские и смежные права на игровой контент.<br>
+                    - Не пытаться взломать, модифицировать или иным образом нарушать работу Сервера и Сайта.<br>
+                    5.3. <strong>Исполнитель имеет право:</strong><br>
+                    - В одностороннем порядке изменять условия настоящей Оферты с предварительным уведомлением на Сайте не менее чем за 3 дня до вступления изменений в силу.<br>
+                    - Приостановить или прекратить доступ Заказчика к Серверу в случае нарушения им правил сервера или условий Оферты без возврата оплаты.<br>
+                    - Отказать в предоставлении Услуг, если Заказчик не достиг возраста 14 лет или не имеет согласия родителей на совершение платежей.<br>
+                    5.4. <strong>Заказчик имеет право:</strong><br>
+                    - Получить Товар в полном объёме в соответствии с условиями оплаты.<br>
+                    - Отказаться от дальнейшего использования Услуг в любое время, однако оплаченные Товары возврату не подлежат (см. п. 6).
+                </div>
+                <div class="section">
+                    <strong>6. Возврат денежных средств</strong><br>
+                    6.1. Услуги, предоставляемые Исполнителем, являются информационно-развлекательными и не подлежат возврату в соответствии с Постановлением Правительства РФ № 2463 от 31.12.2020 (перечень непродовольственных товаров надлежащего качества, не подлежащих возврату и обмену).<br>
+                    6.2. Возврат денежных средств возможен <strong>ТОЛЬКО</strong> в следующих исключительных случаях:<br>
+                    - Услуга не была оказана по вине Исполнителя (например, Товар не был выдан в течение 24 часов после подтверждения оплаты).<br>
+                    - Ошибка в списании денежных средств (удвоение оплаты и т.п.).<br>
+                    6.3. Для инициирования возврата Заказчик обязан направить письменное заявление на email Исполнителя: <strong>stepan.3mail@mail.ru</strong> с указанием:<br>
+                    - Никнейма на Сервере.<br>
+                    - Даты и суммы платежа.<br>
+                    - Номера транзакции (чек).<br>
+                    - Причины возврата.<br>
+                    6.4. Исполнитель рассматривает заявление в течение 5 рабочих дней и принимает решение. В случае положительного решения возврат осуществляется тем же способом, которым был произведён платёж, в течение 10 рабочих дней.
+                </div>
+                <div class="section">
+                    <strong>7. Ответственность сторон</strong><br>
+                    7.1. Исполнитель <strong>не несёт ответственности</strong> за:<br>
+                    - Утерю, кражу или порчу внутриигровых предметов по вине самого Заказчика (передача пароля, взлом аккаунта, нарушение правил сервера).<br>
+                    - Перерывы в работе Сервера, вызванные техническими причинами (обновления, DDoS-атаки, сбои оборудования), если длительность перерыва не превышает 24 часов в месяц.<br>
+                    - Действия третьих лиц, направленные на нарушение работы Сервера или Сайта.<br>
+                    - Любые прямые или косвенные убытки Заказчика, связанные с использованием Сервера (включая упущенную выгоду).<br>
+                    7.2. Заказчик несёт полную ответственность за сохранность своего игрового аккаунта и пароля. Передача доступа к аккаунту третьим лицам осуществляется на свой страх и риск.<br>
+                    7.3. За нарушение правил сервера или условий Оферты Исполнитель имеет право ограничить доступ Заказчика к Серверу без возврата оплаты.
+                </div>
+                <div class="section">
+                    <strong>8. Срок действия оферты и порядок изменения</strong><br>
+                    8.1. Настоящая Оферта вступает в силу с момента её публикации на Сайте и действует бессрочно.<br>
+                    8.2. Исполнитель оставляет за собой право вносить изменения в условия Оферты. Новая редакция Оферты вступает в силу с момента её публикации на Сайте.
+                </div>
+                <div class="section">
+                    <strong>9. Применимое право и разрешение споров</strong><br>
+                    9.1. Настоящая Оферта регулируется законодательством Российской Федерации.<br>
+                    9.2. Все споры решаются путём переговоров. При недостижении согласия спор передаётся на рассмотрение в суд по месту нахождения Исполнителя.
+                </div>
+                <div class="section">
+                    <strong>10. Реквизиты Исполнителя</strong><br>
+                    <strong>Исполнитель:</strong> Чесноков Степан Евгеньевич<br>
+                    <strong>ИНН:</strong> 263520600902<br>
+                    <strong>Адрес:</strong> г. Ставрополь, ул. Пирогова, д. 92, подъезд 1, кв. 14<br>
+                    <strong>Электронная почта:</strong> stepan.3mail@mail.ru
+                </div>
+                <div class="section">
+                    <strong>СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ</strong><br>
+                    Я, действуя свободно, своей волей и в своём интересе, даю своё согласие <strong>Чесноков Степан Евгеньевич</strong> (ИНН 263520600902, адрес: г. Ставрополь, ул. Пирогова, д. 92, подъезд 1, кв. 14) (далее – «Оператор») на обработку моих персональных данных, предоставленных мной при оплате Услуг на сайте <strong>https://luarsmp.ru</strong>.
+                    <br><br>
+                    <strong>1. Перечень персональных данных</strong><br>
+                    1.1. Игровой никнейм (Nickname), используемый на сервере LuarSMP.<br>
+                    1.2. IP-адрес, с которого осуществляется подключение к Серверу и Сайту.<br>
+                    1.3. Адрес электронной почты (e-mail) — при его указании Заказчиком.<br>
+                    1.4. Сведения о платеже (сумма, дата, номер транзакции).
+                    <br><br>
+                    <strong>2. Цели обработки персональных данных</strong><br>
+                    2.1. Оказание информационно-развлекательных услуг (выдача внутриигровых привилегий и предметов).<br>
+                    2.2. Идентификация Заказчика как игрока на Сервере LuarSMP.<br>
+                    2.3. Ведение статистики посещений и улучшение работы Сайта и Сервера.<br>
+                    2.4. Направление чеков и уведомлений об оплате (при указании e-mail).<br>
+                    2.5. Разрешение споров и претензий, связанных с оказанием Услуг.
+                    <br><br>
+                    <strong>3. Перечень действий с персональными данными</strong><br>
+                    Согласие даётся на сбор, запись, систематизацию, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, обезличивание, блокирование, удаление, уничтожение моих персональных данных.
+                    <br><br>
+                    <strong>4. Срок действия согласия</strong><br>
+                    Настоящее согласие действует бессрочно с момента его акцепта (постановки галочки при оформлении заказа) и до момента его отзыва мной в письменной форме.
+                    <br><br>
+                    <strong>5. Отзыв согласия</strong><br>
+                    Я осознаю, что могу отозвать своё согласие в любое время путём отправки письменного уведомления на электронный адрес Оператора: <strong>stepan.3mail@mail.ru</strong>. В случае отзыва согласия Оператор обязан прекратить обработку моих персональных данных и уничтожить их в течение 30 дней, если иное не предусмотрено законодательством РФ.
+                </div>
+            </div>
+
+            <div id="errorMsg" class="error-msg"></div>
+
+            <button class="btn-pay" id="payButton" disabled>Перейти к оплате</button>
         </div>
     </div>
 
     <script>
-        // ===== ДАННЫЕ =====
-        const BACKEND_URL = 'http://95.31.124.238:3000'; // ваш бэкенд
-        const ranks = {
-            'VIP': 123,   // замените на реальные ID из TradeMC
-            'Premium': 124,
-            // ...
-        };
+        // ===== PARTICLE BACKGROUND =====
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let w, h;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * w;
+                this.y = Math.random() * h;
+                this.size = Math.random() * 2.5 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(108, 140, 255, ${this.opacity})`;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < 80; i++) particles.push(new Particle());
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, w, h);
+            particles.forEach(p => { p.update(); p.draw(); });
+            // рисование линий
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(108, 140, 255, ${0.08 * (1 - dist/150)})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles();
+
+        // ===== THEME TOGGLE =====
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        let currentTheme = localStorage.getItem('theme') || 'dark';
+        html.setAttribute('data-theme', currentTheme);
+        const themeIcon = themeToggle.querySelector('i');
+        const themeText = themeToggle.querySelector('span');
+        themeIcon.className = `fas fa-${currentTheme === 'dark' ? 'moon' : 'sun'}`;
+        themeText.textContent = currentTheme === 'dark' ? 'Тёмная' : 'Светлая';
+
+        themeToggle.addEventListener('click', () => {
+            const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeIcon.className = `fas fa-${newTheme === 'dark' ? 'moon' : 'sun'}`;
+            themeText.textContent = newTheme === 'dark' ? 'Тёмная' : 'Светлая';
+        });
+
+        // ===== PAYMENT LOGIC =====
+        const BACKEND_URL = 'http://95.31.124.238:3000';
+        const SHOP_ID = 244378;
 
         let selectedProductId = null;
         let selectedRankName = '';
 
-        // ===== ОТКРЫТИЕ МОДАЛКИ =====
         document.querySelectorAll('.btn-buy').forEach(btn => {
             btn.addEventListener('click', function() {
                 selectedProductId = parseInt(this.dataset.productId);
@@ -325,7 +759,6 @@
             });
         });
 
-        // ===== ЗАКРЫТИЕ =====
         document.getElementById('modalClose').addEventListener('click', () => {
             document.getElementById('paymentModal').classList.remove('active');
         });
@@ -333,7 +766,6 @@
             if (e.target === this) this.classList.remove('active');
         });
 
-        // ===== ПОКАЗ ДОКУМЕНТОВ =====
         document.getElementById('showOfferLink').addEventListener('click', function(e) {
             e.preventDefault();
             document.getElementById('offerText').classList.toggle('show');
@@ -343,12 +775,10 @@
             document.getElementById('offerText').classList.toggle('show');
         });
 
-        // ===== АКТИВАЦИЯ КНОПКИ ПОСЛЕ СОГЛАСИЯ =====
         document.getElementById('agreeCheck').addEventListener('change', function() {
             document.getElementById('payButton').disabled = !this.checked;
         });
 
-        // ===== ОТПРАВКА ЗАПРОСА =====
         document.getElementById('payButton').addEventListener('click', async function() {
             const nickname = document.getElementById('playerName').value.trim();
             const email = document.getElementById('playerEmail').value.trim();
@@ -372,7 +802,7 @@
                         productId: selectedProductId,
                         nickname: nickname,
                         email: email || undefined,
-                        shopId: 244378 // ваш Shop ID
+                        shopId: SHOP_ID
                     })
                 });
 
