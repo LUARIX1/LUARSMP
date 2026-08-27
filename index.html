@@ -157,7 +157,7 @@
         /* ===== Карточки товаров ===== */
         .cards {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 24px;
             margin: 32px 0 56px;
         }
@@ -221,7 +221,7 @@
             color: var(--text-secondary);
             line-height: 1.5;
             margin: 6px 0 20px;
-            min-height: 48px;
+            min-height: 60px;
             transition: color 0.4s;
         }
         .card:hover .desc { color: var(--text); }
@@ -386,7 +386,7 @@
             .header { flex-direction: column; align-items: stretch; gap: 12px; }
             .header .controls { flex-wrap: wrap; justify-content: center; }
             .hero h1 { font-size: 2.6rem; }
-            .cards { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; }
+            .cards { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
             .card { padding: 20px 14px; }
             .card .price { font-size: 2rem; }
             .modal { padding: 24px 16px; }
@@ -425,79 +425,79 @@
             <span class="badge"><i class="fas fa-users"></i> 0 / 20</span>
         </section>
 
-        <!-- ===== КАРТОЧКИ ТОВАРОВ ===== -->
-        <div class="cards" id="productsContainer">
-            <!-- Карточка VIP -->
+        <!-- ===== КАРТОЧКИ ТОВАРОВ (обновлены) ===== -->
+        <div class="cards">
+            <!-- VIP -->
             <div class="card">
                 <div class="icon"><i class="fas fa-star"></i></div>
                 <div class="rank">VIP</div>
                 <div class="price">19 <small>₽</small></div>
-                <div class="desc">Полёт, киты, приоритет</div>
-                <button class="btn-buy" data-product-id="123" data-rank="VIP"><span>Купить</span></button>
+                <div class="desc">🎁 Алмазный кит<br>🌍 Безлимитные варпы<br>👑 Приоритет в очереди</div>
+                <button class="btn-buy" data-product-id="989053" data-rank="VIP"><span>Купить</span></button>
             </div>
-            <!-- Карточка Premium -->
+            <!-- PREMIUM -->
             <div class="card">
                 <div class="icon"><i class="fas fa-crown"></i></div>
-                <div class="rank">Premium</div>
+                <div class="rank">PREMIUM</div>
                 <div class="price">49 <small>₽</small></div>
-                <div class="desc">Дома, киты, /back</div>
-                <button class="btn-buy" data-product-id="124" data-rank="Premium"><span>Купить</span></button>
+                <div class="desc">💎 Алмазный кит + броня<br>🌍 5 варпов<br>🏠 3 дома</div>
+                <button class="btn-buy" data-product-id="989054" data-rank="PREMIUM"><span>Купить</span></button>
             </div>
-            <!-- Карточка Silver -->
+            <!-- SILVER -->
             <div class="card">
                 <div class="icon"><i class="fas fa-shield"></i></div>
-                <div class="rank">Silver</div>
+                <div class="rank">SILVER</div>
                 <div class="price">99 <small>₽</small></div>
-                <div class="desc">5 домов, серебряный кит</div>
-                <button class="btn-buy" data-product-id="125" data-rank="Silver"><span>Купить</span></button>
+                <div class="desc">⚔️ Алмазный меч<br>🌍 10 варпов<br>🏠 5 домов</div>
+                <button class="btn-buy" data-product-id="989055" data-rank="SILVER"><span>Купить</span></button>
             </div>
-            <!-- Карточка Gold -->
+            <!-- GOLD -->
             <div class="card">
                 <div class="icon"><i class="fas fa-shield-halved"></i></div>
-                <div class="rank">Gold</div>
+                <div class="rank">GOLD</div>
                 <div class="price">199 <small>₽</small></div>
-                <div class="desc">7 домов, золотой кит</div>
-                <button class="btn-buy" data-product-id="126" data-rank="Gold"><span>Купить</span></button>
+                <div class="desc">🛡️ Алмазная броня (зачар)<br>🌍 15 варпов<br>🏠 7 домов</div>
+                <button class="btn-buy" data-product-id="989056" data-rank="GOLD"><span>Купить</span></button>
             </div>
-            <!-- Карточка Diamond -->
+            <!-- DIAMOND -->
             <div class="card">
                 <div class="icon"><i class="fas fa-gem"></i></div>
-                <div class="rank">Diamond</div>
+                <div class="rank">DIAMOND</div>
                 <div class="price">299 <small>₽</small></div>
-                <div class="desc">10 домов, алмазный кит</div>
-                <button class="btn-buy" data-product-id="127" data-rank="Diamond"><span>Купить</span></button>
+                <div class="desc">💠 Алмазный набор (макс. чары)<br>🌍 20 варпов<br>🏠 10 домов</div>
+                <button class="btn-buy" data-product-id="989057" data-rank="DIAMOND"><span>Купить</span></button>
             </div>
-            <!-- Карточка Platinum -->
+            <!-- PLATINUM -->
             <div class="card">
                 <div class="icon"><i class="fas fa-bolt"></i></div>
-                <div class="rank">Platinum</div>
+                <div class="rank">PLATINUM</div>
                 <div class="price">499 <small>₽</small></div>
-                <div class="desc">12 домов, незеритовый кит</div>
-                <button class="btn-buy" data-product-id="128" data-rank="Platinum"><span>Купить</span></button>
+                <div class="desc">⚡ Незеритовый меч<br>🌍 25 варпов<br>🏠 12 домов</div>
+                <button class="btn-buy" data-product-id="989059" data-rank="PLATINUM"><span>Купить</span></button>
             </div>
-            <!-- Карточка Rich -->
+            <!-- RICH -->
             <div class="card">
                 <div class="icon"><i class="fas fa-coins"></i></div>
-                <div class="rank">Rich</div>
+                <div class="rank">RICH</div>
                 <div class="price">699 <small>₽</small></div>
-                <div class="desc">15 домов, особый кит</div>
-                <button class="btn-buy" data-product-id="129" data-rank="Rich"><span>Купить</span></button>
+                <div class="desc">💰 Незеритовая броня<br>🌍 30 варпов<br>🏠 15 домов</div>
+                <button class="btn-buy" data-product-id="989060" data-rank="RICH"><span>Купить</span></button>
             </div>
-            <!-- Карточка Titanium -->
+            <!-- TITANIUM -->
             <div class="card">
                 <div class="icon"><i class="fas fa-microchip"></i></div>
-                <div class="rank">Titanium</div>
+                <div class="rank">TITANIUM</div>
                 <div class="price">799 <small>₽</small></div>
-                <div class="desc">18 домов, титановый кит</div>
-                <button class="btn-buy" data-product-id="130" data-rank="Titanium"><span>Купить</span></button>
+                <div class="desc">🔷 Полный незерит (чары)<br>🌍 35 варпов<br>🏠 18 домов</div>
+                <button class="btn-buy" data-product-id="989061" data-rank="TITANIUM"><span>Купить</span></button>
             </div>
-            <!-- Карточка Prime -->
+            <!-- PRIME -->
             <div class="card" style="border-color: #d4af37;">
                 <div class="icon" style="color: #d4af37;"><i class="fas fa-king"></i></div>
-                <div class="rank" style="color: #d4af37;">Prime</div>
+                <div class="rank" style="color: #d4af37;">PRIME</div>
                 <div class="price" style="color: #d4af37;">999 <small>₽</small></div>
-                <div class="desc">25 домов, эксклюзив</div>
-                <button class="btn-buy" data-product-id="131" data-rank="Prime"><span>Купить</span></button>
+                <div class="desc">👑 ВСЁ, ЧТО ВЫШЕ<br>🌍 50 варпов<br>🏠 25 домов<br>⚡ Элитный набор</div>
+                <button class="btn-buy" data-product-id="989062" data-rank="PRIME"><span>Купить</span></button>
             </div>
         </div>
 
@@ -508,7 +508,7 @@
 
     </div>
 
-    <!-- ===== МОДАЛЬНОЕ ОКНО ===== -->
+    <!-- ===== МОДАЛЬНОЕ ОКНО (оферта и согласие) ===== -->
     <div class="modal-overlay" id="paymentModal">
         <div class="modal">
             <button class="close" id="modalClose">&times;</button>
@@ -529,6 +529,7 @@
             </div>
 
             <div id="offerText" class="offer-text">
+                <!-- Полный текст оферты и согласия (как в предыдущей версии) -->
                 <div class="section">
                     <strong>ПУБЛИЧНАЯ ОФЕРТА</strong><br>
                     о предоставлении доступа к игровому серверу и продаже внутриигровых предметов (услуг)
