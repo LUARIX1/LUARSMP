@@ -43,8 +43,6 @@
             position: relative;
             overflow-x: hidden;
         }
-
-        /* ===== Анимированный фон с частицами ===== */
         #particles-canvas {
             position: fixed;
             inset: 0;
@@ -62,14 +60,12 @@
                         radial-gradient(circle at 80% 70%, rgba(179,136,255,0.1), transparent 50%);
             transition: background var(--transition);
         }
-
         .container {
             max-width: 1200px;
             margin: 0 auto;
             position: relative;
             z-index: 1;
         }
-
         /* ===== Шапка ===== */
         .header {
             display: flex;
@@ -256,7 +252,7 @@
         .card .btn-buy:hover::after { opacity: 1; }
         .card .btn-buy:active { transform: scale(0.97); }
 
-        /* ===== Модальное окно ===== */
+        /* ===== Модальное окно заказа ===== */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -330,6 +326,57 @@
         .modal .agree a { color: var(--accent); text-decoration: underline; cursor: pointer; }
         .modal .agree a:hover { color: #b388ff; }
 
+        /* ===== Блок промокода ===== */
+        .promo-block {
+            display: flex;
+            gap: 10px;
+            margin: 12px 0 16px;
+            align-items: center;
+        }
+        .promo-block input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .promo-block input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+        .promo-block button {
+            padding: 10px 20px;
+            border-radius: 12px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            white-space: nowrap;
+        }
+        .promo-block button:hover { background: #b388ff; transform: scale(1.02); }
+        .promo-block button:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .promo-message {
+            font-size: 0.85rem;
+            margin-top: -8px;
+            margin-bottom: 12px;
+        }
+        .promo-message.success { color: #2ea043; }
+        .promo-message.error { color: #f85149; }
+        .price-discount {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-decoration: line-through;
+            margin-right: 8px;
+        }
+        .price-final {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2ea043;
+        }
+
         .offer-text {
             font-size: 0.8rem;
             color: var(--text-secondary);
@@ -365,6 +412,80 @@
         .modal .error-msg { color: #f85149; font-size: 0.85rem; margin-top: 6px; display: none; }
         .modal .error-msg.show { display: block; }
 
+        /* ===== Дополнительное окно-предупреждение ===== */
+        .modal-warning {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .modal-warning.active {
+            display: flex;
+        }
+        .modal-warning .modal-content {
+            background: var(--bg);
+            max-width: 540px;
+            width: 95%;
+            padding: 32px 28px;
+            border-radius: 24px;
+            border: 2px solid #ff4444;
+            box-shadow: 0 20px 60px rgba(255, 68, 68, 0.3);
+            text-align: center;
+            animation: modalSlide 0.3s ease;
+        }
+        .modal-warning .modal-content h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #ff4444;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .modal-warning .modal-content p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .modal-warning .modal-content .highlight {
+            display: inline-block;
+            background: #2ea043;
+            color: #fff;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .modal-warning .modal-content .timer-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 12px;
+        }
+        .modal-warning .modal-content .btn-continue {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            background: #238636;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.2s;
+            margin-top: 16px;
+        }
+        .modal-warning .modal-content .btn-continue:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .modal-warning .modal-content .btn-continue:hover:not(:disabled) {
+            background: #2ea043;
+        }
+
         /* ===== Футер ===== */
         .footer {
             padding-top: 24px;
@@ -390,6 +511,7 @@
             .card { padding: 20px 14px; }
             .card .price { font-size: 2rem; }
             .modal { padding: 24px 16px; }
+            .promo-block { flex-wrap: wrap; }
         }
         @media (max-width: 480px) {
             .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -401,13 +523,11 @@
     </style>
 </head>
 <body>
-    <!-- ===== Анимированный фон (canvas) ===== -->
     <canvas id="particles-canvas"></canvas>
     <div class="bg-glow"></div>
 
     <div class="container">
 
-        <!-- ===== ШАПКА ===== -->
         <header class="header">
             <div class="brand">✦ LuarSMP</div>
             <div class="controls">
@@ -418,97 +538,86 @@
             </div>
         </header>
 
-        <!-- ===== ГЕРОЙ ===== -->
         <section class="hero">
             <h1><i class="fas fa-cube"></i>Ванильное выживание</h1>
             <div class="sub">Чистый геймплей, никаких модов</div>
             <span class="badge"><i class="fas fa-users"></i> 0 / 20</span>
         </section>
 
-        <!-- ===== КАРТОЧКИ ТОВАРОВ ===== -->
         <div class="cards">
-            <!-- VIP -->
+            <!-- Карточки товаров (без изменений) -->
             <div class="card">
                 <div class="icon"><i class="fas fa-star"></i></div>
                 <div class="rank">VIP</div>
-                <div class="price">19 <small>₽</small></div>
+                <div class="price" data-original="19">19 <small>₽</small></div>
                 <div class="desc">🏠 2 дома<br>🎁 Стартовый набор</div>
                 <button class="btn-buy" data-product-id="989053" data-rank="VIP"><span>Купить</span></button>
             </div>
-            <!-- PREMIUM -->
             <div class="card">
                 <div class="icon"><i class="fas fa-crown"></i></div>
                 <div class="rank">PREMIUM</div>
-                <div class="price">49 <small>₽</small></div>
+                <div class="price" data-original="49">49 <small>₽</small></div>
                 <div class="desc">🏠 3 дома<br>🎁 Улучшенный кит</div>
                 <button class="btn-buy" data-product-id="989054" data-rank="PREMIUM"><span>Купить</span></button>
             </div>
-            <!-- SILVER -->
             <div class="card">
                 <div class="icon"><i class="fas fa-shield"></i></div>
                 <div class="rank">SILVER</div>
-                <div class="price">99 <small>₽</small></div>
+                <div class="price" data-original="99">99 <small>₽</small></div>
                 <div class="desc">🏠 5 домов<br>🎁 Серебряный кит</div>
                 <button class="btn-buy" data-product-id="989055" data-rank="SILVER"><span>Купить</span></button>
             </div>
-            <!-- GOLD -->
             <div class="card">
                 <div class="icon"><i class="fas fa-shield-halved"></i></div>
                 <div class="rank">GOLD</div>
-                <div class="price">199 <small>₽</small></div>
+                <div class="price" data-original="199">199 <small>₽</small></div>
                 <div class="desc">🏠 7 домов<br>🎁 Золотой кит</div>
                 <button class="btn-buy" data-product-id="989056" data-rank="GOLD"><span>Купить</span></button>
             </div>
-            <!-- DIAMOND -->
             <div class="card">
                 <div class="icon"><i class="fas fa-gem"></i></div>
                 <div class="rank">DIAMOND</div>
-                <div class="price">299 <small>₽</small></div>
+                <div class="price" data-original="299">299 <small>₽</small></div>
                 <div class="desc">🏠 10 домов<br>💎 Алмазный кит</div>
                 <button class="btn-buy" data-product-id="989057" data-rank="DIAMOND"><span>Купить</span></button>
             </div>
-            <!-- PLATINUM -->
             <div class="card">
                 <div class="icon"><i class="fas fa-bolt"></i></div>
                 <div class="rank">PLATINUM</div>
-                <div class="price">499 <small>₽</small></div>
+                <div class="price" data-original="499">499 <small>₽</small></div>
                 <div class="desc">🏠 12 домов<br>💎 Алмазный кит (улучшенный)</div>
                 <button class="btn-buy" data-product-id="989059" data-rank="PLATINUM"><span>Купить</span></button>
             </div>
-            <!-- RICH -->
             <div class="card">
                 <div class="icon"><i class="fas fa-coins"></i></div>
                 <div class="rank">RICH</div>
-                <div class="price">699 <small>₽</small></div>
+                <div class="price" data-original="699">699 <small>₽</small></div>
                 <div class="desc">🏠 15 домов<br>💎 Алмазный кит (максимальный)<br>🌍 1 варп</div>
                 <button class="btn-buy" data-product-id="989060" data-rank="RICH"><span>Купить</span></button>
             </div>
-            <!-- TITANIUM -->
             <div class="card">
                 <div class="icon"><i class="fas fa-microchip"></i></div>
                 <div class="rank">TITANIUM</div>
-                <div class="price">799 <small>₽</small></div>
+                <div class="price" data-original="799">799 <small>₽</small></div>
                 <div class="desc">🏠 18 домов<br>💎 Алмазный кит (элитный)<br>🌍 2 варпа</div>
                 <button class="btn-buy" data-product-id="989061" data-rank="TITANIUM"><span>Купить</span></button>
             </div>
-            <!-- PRIME -->
             <div class="card" style="border-color: #d4af37;">
                 <div class="icon" style="color: #d4af37;"><i class="fas fa-king"></i></div>
                 <div class="rank" style="color: #d4af37;">PRIME</div>
-                <div class="price" style="color: #d4af37;">999 <small>₽</small></div>
+                <div class="price" data-original="999">999 <small>₽</small></div>
                 <div class="desc">🏠 25 домов<br>💎 Алмазный кит (легендарный)<br>🌍 5 варпов</div>
                 <button class="btn-buy" data-product-id="989062" data-rank="PRIME"><span>Купить</span></button>
             </div>
         </div>
 
-        <!-- ===== ФУТЕР ===== -->
         <footer class="footer">
             © 2026 LuarSMP
         </footer>
 
     </div>
 
-    <!-- ===== МОДАЛЬНОЕ ОКНО ===== -->
+    <!-- ===== Модальное окно заказа ===== -->
     <div class="modal-overlay" id="paymentModal">
         <div class="modal">
             <button class="close" id="modalClose">&times;</button>
@@ -520,6 +629,22 @@
             <label>Email (для чека, опционально)</label>
             <input type="email" id="playerEmail" placeholder="example@mail.ru">
 
+            <!-- ===== БЛОК ПРОМОКОДА ===== -->
+            <label>Промокод (если есть)</label>
+            <div class="promo-block">
+                <input type="text" id="promoInput" placeholder="Введите промокод">
+                <button id="applyPromoBtn">Применить</button>
+            </div>
+            <div id="promoMessage" class="promo-message"></div>
+
+            <!-- Отображение цены со скидкой -->
+            <div style="margin: 8px 0 16px; font-size: 1.1rem;">
+                <span id="priceDisplay">
+                    <span id="originalPriceDisplay"></span>
+                    <span id="finalPriceDisplay" class="price-final"></span>
+                </span>
+            </div>
+
             <div class="agree">
                 <input type="checkbox" id="agreeCheck">
                 <span>
@@ -529,7 +654,7 @@
             </div>
 
             <div id="offerText" class="offer-text">
-                <!-- Полный текст оферты и согласия (как в предыдущей версии) -->
+                <!-- Содержимое оферты (как было) -->
                 <div class="section">
                     <strong>ПУБЛИЧНАЯ ОФЕРТА</strong><br>
                     о предоставлении доступа к игровому серверу и продаже внутриигровых предметов (услуг)
@@ -659,20 +784,53 @@
         </div>
     </div>
 
+    <!-- ===== ОКНО-ПРЕДУПРЕЖДЕНИЕ ===== -->
+    <div class="modal-warning" id="warningModal">
+        <div class="modal-content">
+            <h2>⚠️ ВНИМАНИЕ!!!!!</h2>
+            <p>
+                При оплате через <strong>СБП</strong> комиссия <strong>0%</strong> — вы платите только стоимость привилегии.
+            </p>
+            <p>
+                При оплате <strong>картой</strong> или другими способами взимается <strong>высокая комиссия</strong> платёжной системы.
+            </p>
+            <div class="highlight">Рекомендуем использовать СБП</div>
+            <div class="timer-text" id="timerText">Подождите <span id="countdown">10</span> секунд</div>
+            <button class="btn-continue" id="continueBtn" disabled>Продолжить оплату</button>
+        </div>
+    </div>
+
     <script>
-        // ===== PARTICLE BACKGROUND =====
+        // ========================
+        //  ОБЩИЕ ПЕРЕМЕННЫЕ
+        // ========================
+        const BACKEND_URL = ''; // пустой – используем относительные пути
+        const SHOP_ID = 244378;
+
+        let selectedProductId = null;
+        let selectedRankName = '';
+        let originalPrice = 0;
+        let finalPrice = 0;
+        let appliedPromo = null; // объект { code, discountType, discountValue }
+
+        // Элементы
+        const payButton = document.getElementById('payButton');
+        const promoInput = document.getElementById('promoInput');
+        const applyPromoBtn = document.getElementById('applyPromoBtn');
+        const promoMessage = document.getElementById('promoMessage');
+        const originalPriceDisplay = document.getElementById('originalPriceDisplay');
+        const finalPriceDisplay = document.getElementById('finalPriceDisplay');
+
+        // ========================
+        //  ЧАСТИЦЫ (без изменений)
+        // ========================
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
         let w, h;
-
-        function resize() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-        }
+        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
         window.addEventListener('resize', resize);
         resize();
-
         class Particle {
             constructor() { this.reset(); }
             reset() {
@@ -695,9 +853,7 @@
                 ctx.fill();
             }
         }
-
         for (let i = 0; i < 80; i++) particles.push(new Particle());
-
         function animateParticles() {
             ctx.clearRect(0, 0, w, h);
             particles.forEach(p => { p.update(); p.draw(); });
@@ -720,7 +876,9 @@
         }
         animateParticles();
 
-        // ===== THEME TOGGLE =====
+        // ========================
+        //  ТЕМА
+        // ========================
         const themeToggle = document.getElementById('themeToggle');
         const html = document.documentElement;
         let currentTheme = localStorage.getItem('theme') || 'dark';
@@ -729,7 +887,6 @@
         const themeText = themeToggle.querySelector('span');
         themeIcon.className = `fas fa-${currentTheme === 'dark' ? 'moon' : 'sun'}`;
         themeText.textContent = currentTheme === 'dark' ? 'Тёмная' : 'Светлая';
-
         themeToggle.addEventListener('click', () => {
             const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             html.setAttribute('data-theme', newTheme);
@@ -738,22 +895,27 @@
             themeText.textContent = newTheme === 'dark' ? 'Тёмная' : 'Светлая';
         });
 
-        // ===== PAYMENT LOGIC (исправленная) =====
-        const BACKEND_URL = 'https://api.luarsmp.ru:8443'; // ВАШ ВНЕШНИЙ IP:3000
-        const SHOP_ID = 244378;
-
-        let selectedProductId = null;
-        let selectedRankName = '';
-
+        // ========================
+        //  МОДАЛКА ЗАКАЗА
+        // ========================
         document.querySelectorAll('.btn-buy').forEach(btn => {
             btn.addEventListener('click', function() {
                 selectedProductId = parseInt(this.dataset.productId);
                 selectedRankName = this.dataset.rank;
+                // Получаем цену из карточки
+                const priceEl = this.closest('.card').querySelector('.price');
+                originalPrice = parseInt(priceEl.dataset.original);
+                finalPrice = originalPrice;
+                appliedPromo = null;
+                promoInput.value = '';
+                promoMessage.textContent = '';
+                promoMessage.className = 'promo-message';
+                updatePriceDisplay();
                 document.getElementById('paymentModal').classList.add('active');
                 document.getElementById('playerName').value = '';
                 document.getElementById('playerEmail').value = '';
                 document.getElementById('agreeCheck').checked = false;
-                document.getElementById('payButton').disabled = true;
+                payButton.disabled = true;
                 document.getElementById('errorMsg').classList.remove('show');
                 document.getElementById('offerText').classList.remove('show');
             });
@@ -776,10 +938,79 @@
         });
 
         document.getElementById('agreeCheck').addEventListener('change', function() {
-            document.getElementById('payButton').disabled = !this.checked;
+            payButton.disabled = !this.checked;
         });
 
-        document.getElementById('payButton').addEventListener('click', async function() {
+        // ========================
+        //  ПРОМОКОДЫ
+        // ========================
+        function updatePriceDisplay() {
+            if (appliedPromo) {
+                originalPriceDisplay.textContent = `${originalPrice} ₽`;
+                finalPriceDisplay.textContent = `${finalPrice} ₽ (скидка ${appliedPromo.discountType === 'percent' ? appliedPromo.discountValue + '%' : appliedPromo.discountValue + ' ₽'})`;
+                document.getElementById('priceDisplay').style.display = 'block';
+            } else {
+                originalPriceDisplay.textContent = '';
+                finalPriceDisplay.textContent = `${originalPrice} ₽`;
+                document.getElementById('priceDisplay').style.display = 'block';
+            }
+        }
+
+        applyPromoBtn.addEventListener('click', async function() {
+            const code = promoInput.value.trim();
+            if (!code) {
+                promoMessage.textContent = 'Введите промокод.';
+                promoMessage.className = 'promo-message error';
+                return;
+            }
+
+            // Отправляем запрос на бэкенд для проверки промокода
+            try {
+                this.disabled = true;
+                this.textContent = 'Проверка...';
+                const response = await fetch('/api/validate-promo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, productId: selectedProductId })
+                });
+                const data = await response.json();
+
+                if (data.valid) {
+                    appliedPromo = {
+                        code: code,
+                        discountType: data.discountType, // 'percent' или 'fixed'
+                        discountValue: data.discountValue
+                    };
+                    // Вычисляем финальную цену
+                    if (data.discountType === 'percent') {
+                        finalPrice = Math.round(originalPrice * (1 - data.discountValue / 100));
+                    } else { // fixed
+                        finalPrice = Math.max(0, originalPrice - data.discountValue);
+                    }
+                    promoMessage.textContent = `✅ Промокод применён! Скидка ${data.discountType === 'percent' ? data.discountValue + '%' : data.discountValue + ' ₽'}`;
+                    promoMessage.className = 'promo-message success';
+                    updatePriceDisplay();
+                } else {
+                    promoMessage.textContent = '❌ Неверный или неактивный промокод.';
+                    promoMessage.className = 'promo-message error';
+                    appliedPromo = null;
+                    finalPrice = originalPrice;
+                    updatePriceDisplay();
+                }
+            } catch (error) {
+                console.error('Ошибка проверки промокода:', error);
+                promoMessage.textContent = '❌ Ошибка проверки промокода.';
+                promoMessage.className = 'promo-message error';
+            } finally {
+                this.disabled = false;
+                this.textContent = 'Применить';
+            }
+        });
+
+        // ========================
+        //  ОПЛАТА с предупреждением
+        // ========================
+        document.getElementById('payButton').addEventListener('click', function() {
             const nickname = document.getElementById('playerName').value.trim();
             const email = document.getElementById('playerEmail').value.trim();
             const errorMsg = document.getElementById('errorMsg');
@@ -791,20 +1022,58 @@
             }
             errorMsg.classList.remove('show');
 
-            this.disabled = true;
-            this.textContent = 'Обработка...';
+            // Показываем предупреждение
+            document.getElementById('paymentModal').classList.remove('active');
+            const warningModal = document.getElementById('warningModal');
+            warningModal.classList.add('active');
+
+            const continueBtn = document.getElementById('continueBtn');
+            const countdownSpan = document.getElementById('countdown');
+            let seconds = 10;
+            countdownSpan.textContent = seconds;
+            continueBtn.disabled = true;
+            continueBtn.textContent = 'Продолжить оплату';
+            document.getElementById('timerText').innerHTML = `Подождите <span id="countdown">10</span> секунд`;
+
+            const timer = setInterval(() => {
+                seconds--;
+                countdownSpan.textContent = seconds;
+                if (seconds <= 0) {
+                    clearInterval(timer);
+                    continueBtn.disabled = false;
+                    document.getElementById('timerText').innerHTML = '✅ Теперь можно продолжить';
+                }
+            }, 1000);
+
+            continueBtn.onclick = function() {
+                if (this.disabled) return;
+                warningModal.classList.remove('active');
+                document.getElementById('paymentModal').classList.add('active');
+                clearInterval(timer);
+                // Выполняем платеж с финальной ценой
+                executePayment(nickname, email, finalPrice);
+            };
+        });
+
+        // ========================
+        //  ВЫПОЛНЕНИЕ ПЛАТЕЖА
+        // ========================
+        async function executePayment(nickname, email, amount) {
+            payButton.disabled = true;
+            payButton.textContent = 'Обработка...';
+            const errorMsg = document.getElementById('errorMsg');
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/create-payment`, {
+                const response = await fetch('/api/create-payment', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         productId: selectedProductId,
                         nickname: nickname,
                         email: email || undefined,
-                        shopId: SHOP_ID
+                        shopId: SHOP_ID,
+                        amount: amount,          // передаём финальную сумму
+                        promoCode: appliedPromo ? appliedPromo.code : null
                     })
                 });
 
@@ -814,23 +1083,24 @@
                 }
 
                 const data = await response.json();
-
                 if (data.url) {
                     window.location.href = data.url;
                 } else {
                     errorMsg.textContent = data.error || 'Ошибка создания платежа. Попробуйте позже.';
                     errorMsg.classList.add('show');
-                    this.disabled = false;
-                    this.textContent = 'Перейти к оплате';
+                    payButton.disabled = false;
+                    payButton.textContent = 'Перейти к оплате';
+                    document.getElementById('paymentModal').classList.add('active');
                 }
             } catch (error) {
                 console.error('Ошибка:', error);
                 errorMsg.textContent = 'Ошибка соединения с сервером. Проверьте, запущен ли бэкенд.';
                 errorMsg.classList.add('show');
-                this.disabled = false;
-                this.textContent = 'Перейти к оплате';
+                payButton.disabled = false;
+                payButton.textContent = 'Перейти к оплате';
+                document.getElementById('paymentModal').classList.add('active');
             }
-        });
+        }
     </script>
 </body>
 </html>
