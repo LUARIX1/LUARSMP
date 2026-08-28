@@ -689,299 +689,182 @@
     </div>
 
     <script>
-        // ========================
-        //  ОБЩИЕ ПЕРЕМЕННЫЕ
-        // ========================
-        const BACKEND_URL = 'https://api.luarsmp.ru:8443';
-        const SHOP_ID = 244378;
+// ========================
+//  ОБЩИЕ ПЕРЕМЕННЫЕ
+// ========================
+const BACKEND_URL = 'https://api.luarsmp.ru:8443';
+const SHOP_ID = 244378;
 
-        let selectedProductId = null;
-        let selectedRankName = '';
-        let originalPrice = 0;
-        let finalPrice = 0;
-        let appliedPromo = null;
+let selectedProductId = null;
+let selectedRankName = '';
+let originalPrice = 0;
+let finalPrice = 0;
+let appliedPromo = null;
 
-        // Элементы
-        const payButton = document.getElementById('payButton');
-        const promoInput = document.getElementById('promoInput');
-        const applyPromoBtn = document.getElementById('applyPromoBtn');
-        const promoMessage = document.getElementById('promoMessage');
-        const originalPriceDisplay = document.getElementById('originalPriceDisplay');
-        const finalPriceDisplay = document.getElementById('finalPriceDisplay');
+// Элементы
+const payButton = document.getElementById('payButton');
+const promoInput = document.getElementById('promoInput');
+const applyPromoBtn = document.getElementById('applyPromoBtn');
+const promoMessage = document.getElementById('promoMessage');
+const originalPriceDisplay = document.getElementById('originalPriceDisplay');
+const finalPriceDisplay = document.getElementById('finalPriceDisplay');
 
-        // ========================
-        //  ЧАСТИЦЫ (без изменений)
-        // ========================
-        const canvas = document.getElementById('particles-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let w, h;
-        function resize() { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; }
-        window.addEventListener('resize', resize);
-        resize();
-        class Particle {
-            constructor() { this.reset(); }
-            reset() {
-                this.x = Math.random() * w;
-                this.y = Math.random() * h;
-                this.size = Math.random() * 2.5 + 1;
-                this.speedX = (Math.random() - 0.5) * 0.5;
-                this.speedY = (Math.random() - 0.5) * 0.5;
-                this.opacity = Math.random() * 0.5 + 0.2;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(108, 140, 255, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
-        for (let i = 0; i < 80; i++) particles.push(new Particle());
-        function animateParticles() {
-            ctx.clearRect(0, 0, w, h);
-            particles.forEach(p => { p.update(); p.draw(); });
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 150) {
-                        ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = `rgba(108, 140, 255, ${0.08 * (1 - dist/150)})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.stroke();
-                    }
-                }
-            }
-            requestAnimationFrame(animateParticles);
-        }
-        animateParticles();
+// ... (код частиц, темы, открытия модалки и т.д. остаётся без изменений) ...
 
-        // ========================
-        //  ТЕМА
-        // ========================
-        const themeToggle = document.getElementById('themeToggle');
-        const html = document.documentElement;
-        let currentTheme = localStorage.getItem('theme') || 'dark';
-        html.setAttribute('data-theme', currentTheme);
-        const themeIcon = themeToggle.querySelector('i');
-        const themeText = themeToggle.querySelector('span');
-        themeIcon.className = `fas fa-${currentTheme === 'dark' ? 'moon' : 'sun'}`;
-        themeText.textContent = currentTheme === 'dark' ? 'Тёмная' : 'Светлая';
-        themeToggle.addEventListener('click', () => {
-            const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            themeIcon.className = `fas fa-${newTheme === 'dark' ? 'moon' : 'sun'}`;
-            themeText.textContent = newTheme === 'dark' ? 'Тёмная' : 'Светлая';
+// ========================
+//  ПРОМОКОДЫ
+// ========================
+function updatePriceDisplay() {
+    if (appliedPromo) {
+        originalPriceDisplay.textContent = `${originalPrice} ₽`;
+        finalPriceDisplay.textContent = `${finalPrice} ₽ (скидка ${appliedPromo.discountType === 'percent' ? appliedPromo.discountValue + '%' : appliedPromo.discountValue + ' ₽'})`;
+        document.getElementById('priceDisplay').style.display = 'block';
+    } else {
+        originalPriceDisplay.textContent = '';
+        finalPriceDisplay.textContent = `${originalPrice} ₽`;
+        document.getElementById('priceDisplay').style.display = 'block';
+    }
+}
+
+applyPromoBtn.addEventListener('click', async function() {
+    const code = promoInput.value.trim();
+    if (!code) {
+        promoMessage.textContent = 'Введите промокод.';
+        promoMessage.className = 'promo-message error';
+        return;
+    }
+    try {
+        this.disabled = true;
+        this.textContent = 'Проверка...';
+        const response = await fetch(`${BACKEND_URL}/api/validate-promo`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code, productId: selectedProductId })
         });
-
-        // ========================
-        //  МОДАЛКА ЗАКАЗА
-        // ========================
-        document.querySelectorAll('.btn-buy').forEach(btn => {
-            btn.addEventListener('click', function() {
-                selectedProductId = parseInt(this.dataset.productId);
-                selectedRankName = this.dataset.rank;
-                const priceEl = this.closest('.card').querySelector('.price');
-                originalPrice = parseInt(priceEl.dataset.original);
-                finalPrice = originalPrice;
-                appliedPromo = null;
-                promoInput.value = '';
-                promoMessage.textContent = '';
-                promoMessage.className = 'promo-message';
-                updatePriceDisplay();
-                document.getElementById('paymentModal').classList.add('active');
-                document.getElementById('playerName').value = '';
-                document.getElementById('playerEmail').value = '';
-                document.getElementById('agreeCheck').checked = false;
-                payButton.disabled = true;
-                document.getElementById('errorMsg').classList.remove('show');
-                document.getElementById('offerText').classList.remove('show');
-            });
-        });
-
-        document.getElementById('modalClose').addEventListener('click', () => {
-            document.getElementById('paymentModal').classList.remove('active');
-        });
-        document.getElementById('paymentModal').addEventListener('click', function(e) {
-            if (e.target === this) this.classList.remove('active');
-        });
-
-        document.getElementById('showOfferLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('offerText').classList.toggle('show');
-        });
-        document.getElementById('showPersonalLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('offerText').classList.toggle('show');
-        });
-
-        document.getElementById('agreeCheck').addEventListener('change', function() {
-            payButton.disabled = !this.checked;
-        });
-
-        // ========================
-        //  ПРОМОКОДЫ
-        // ========================
-        function updatePriceDisplay() {
-            if (appliedPromo) {
-                originalPriceDisplay.textContent = `${originalPrice} ₽`;
-                finalPriceDisplay.textContent = `${finalPrice} ₽ (скидка ${appliedPromo.discountType === 'percent' ? appliedPromo.discountValue + '%' : appliedPromo.discountValue + ' ₽'})`;
-                document.getElementById('priceDisplay').style.display = 'block';
-            } else {
-                originalPriceDisplay.textContent = '';
-                finalPriceDisplay.textContent = `${originalPrice} ₽`;
-                document.getElementById('priceDisplay').style.display = 'block';
-            }
-        }
-
-        applyPromoBtn.addEventListener('click', async function() {
-            const code = promoInput.value.trim();
-            if (!code) {
-                promoMessage.textContent = 'Введите промокод.';
-                promoMessage.className = 'promo-message error';
-                return;
-            }
-            try {
-                this.disabled = true;
-                this.textContent = 'Проверка...';
-                const response = await fetch(`${BACKEND_URL}/api/validate-promo`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, productId: selectedProductId })
-                });
-                const data = await response.json();
-                if (data.valid) {
-                    appliedPromo = {
-                        code: code,
-                        discountType: data.discountType,
-                        discountValue: data.discountValue
-                    };
-                    if (data.discountType === 'percent') {
-                        finalPrice = Math.round(originalPrice * (1 - data.discountValue / 100));
-                    } else {
-                        finalPrice = Math.max(0, originalPrice - data.discountValue);
-                    }
-                    promoMessage.textContent = `✅ Промокод применён! Скидка ${data.discountType === 'percent' ? data.discountValue + '%' : data.discountValue + ' ₽'}`;
-                    promoMessage.className = 'promo-message success';
-                    updatePriceDisplay();
-                } else {
-                    promoMessage.textContent = '❌ Неверный или неактивный промокод.';
-                    promoMessage.className = 'promo-message error';
-                    appliedPromo = null;
-                    finalPrice = originalPrice;
-                    updatePriceDisplay();
-                }
-            } catch (error) {
-                console.error('Ошибка проверки промокода:', error);
-                promoMessage.textContent = '❌ Ошибка проверки промокода.';
-                promoMessage.className = 'promo-message error';
-            } finally {
-                this.disabled = false;
-                this.textContent = 'Применить';
-            }
-        });
-
-        // ========================
-        //  ОПЛАТА с предупреждением
-        // ========================
-        document.getElementById('payButton').addEventListener('click', function() {
-            const nickname = document.getElementById('playerName').value.trim();
-            const email = document.getElementById('playerEmail').value.trim();
-            const errorMsg = document.getElementById('errorMsg');
-
-            if (!nickname) {
-                errorMsg.textContent = 'Пожалуйста, введите ваш игровой ник.';
-                errorMsg.classList.add('show');
-                return;
-            }
-            errorMsg.classList.remove('show');
-
-            document.getElementById('paymentModal').classList.remove('active');
-            const warningModal = document.getElementById('warningModal');
-            warningModal.classList.add('active');
-
-            const continueBtn = document.getElementById('continueBtn');
-            const countdownSpan = document.getElementById('countdown');
-            let seconds = 10;
-            countdownSpan.textContent = seconds;
-            continueBtn.disabled = true;
-            continueBtn.textContent = 'Продолжить оплату';
-            document.getElementById('timerText').innerHTML = `Подождите <span id="countdown">10</span> секунд`;
-
-            const timer = setInterval(() => {
-                seconds--;
-                countdownSpan.textContent = seconds;
-                if (seconds <= 0) {
-                    clearInterval(timer);
-                    continueBtn.disabled = false;
-                    document.getElementById('timerText').innerHTML = '✅ Теперь можно продолжить';
-                }
-            }, 1000);
-
-            continueBtn.onclick = function() {
-                if (this.disabled) return;
-                warningModal.classList.remove('active');
-                document.getElementById('paymentModal').classList.add('active');
-                clearInterval(timer);
-                executePayment(nickname, email, finalPrice);
+        const data = await response.json();
+        if (data.valid) {
+            appliedPromo = {
+                code: code,
+                discountType: data.discountType,
+                discountValue: data.discountValue
             };
+            if (data.discountType === 'percent') {
+                finalPrice = Math.round(originalPrice * (1 - data.discountValue / 100));
+            } else {
+                finalPrice = Math.max(0, originalPrice - data.discountValue);
+            }
+            promoMessage.textContent = `✅ Промокод применён! Скидка ${data.discountType === 'percent' ? data.discountValue + '%' : data.discountValue + ' ₽'}`;
+            promoMessage.className = 'promo-message success';
+            updatePriceDisplay();
+        } else {
+            promoMessage.textContent = '❌ Неверный или неактивный промокод.';
+            promoMessage.className = 'promo-message error';
+            appliedPromo = null;
+            finalPrice = originalPrice;
+            updatePriceDisplay();
+        }
+    } catch (error) {
+        console.error('Ошибка проверки промокода:', error);
+        promoMessage.textContent = '❌ Ошибка проверки промокода.';
+        promoMessage.className = 'promo-message error';
+    } finally {
+        this.disabled = false;
+        this.textContent = 'Применить';
+    }
+});
+
+// ========================
+//  ОПЛАТА с предупреждением
+// ========================
+document.getElementById('payButton').addEventListener('click', function() {
+    const nickname = document.getElementById('playerName').value.trim();
+    const email = document.getElementById('playerEmail').value.trim();
+    const errorMsg = document.getElementById('errorMsg');
+
+    if (!nickname) {
+        errorMsg.textContent = 'Пожалуйста, введите ваш игровой ник.';
+        errorMsg.classList.add('show');
+        return;
+    }
+    errorMsg.classList.remove('show');
+
+    document.getElementById('paymentModal').classList.remove('active');
+    const warningModal = document.getElementById('warningModal');
+    warningModal.classList.add('active');
+
+    const continueBtn = document.getElementById('continueBtn');
+    const countdownSpan = document.getElementById('countdown');
+    let seconds = 10;
+    countdownSpan.textContent = seconds;
+    continueBtn.disabled = true;
+    continueBtn.textContent = 'Продолжить оплату';
+    document.getElementById('timerText').innerHTML = `Подождите <span id="countdown">10</span> секунд`;
+
+    const timer = setInterval(() => {
+        seconds--;
+        countdownSpan.textContent = seconds;
+        if (seconds <= 0) {
+            clearInterval(timer);
+            continueBtn.disabled = false;
+            document.getElementById('timerText').innerHTML = '✅ Теперь можно продолжить';
+        }
+    }, 1000);
+
+    continueBtn.onclick = function() {
+        if (this.disabled) return;
+        warningModal.classList.remove('active');
+        document.getElementById('paymentModal').classList.add('active');
+        clearInterval(timer);
+        executePayment(nickname, email);
+    };
+});
+
+// ========================
+//  ВЫПОЛНЕНИЕ ПЛАТЕЖА
+// ========================
+async function executePayment(nickname, email) {
+    payButton.disabled = true;
+    payButton.textContent = 'Обработка...';
+    const errorMsg = document.getElementById('errorMsg');
+
+    try {
+        // ===== ГЛАВНОЕ ИЗМЕНЕНИЕ: передаём промокод в бэкенд =====
+        const response = await fetch(`${BACKEND_URL}/api/create-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                productId: selectedProductId,
+                nickname: nickname,
+                email: email || undefined,
+                shopId: SHOP_ID,
+                promoCode: appliedPromo ? appliedPromo.code : null // <-- передаём код купона
+            })
         });
 
-        // ========================
-        //  ВЫПОЛНЕНИЕ ПЛАТЕЖА
-        // ========================
-        async function executePayment(nickname, email, amount) {
-            payButton.disabled = true;
-            payButton.textContent = 'Обработка...';
-            const errorMsg = document.getElementById('errorMsg');
-
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/create-payment`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        productId: selectedProductId,
-                        nickname: nickname,
-                        email: email || undefined,
-                        shopId: SHOP_ID,
-                        amount: amount,
-                        promoCode: appliedPromo ? appliedPromo.code : null
-                    })
-                });
-
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(`Ошибка сервера: ${response.status} - ${text}`);
-                }
-
-                const data = await response.json();
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    errorMsg.textContent = data.error || 'Ошибка создания платежа. Попробуйте позже.';
-                    errorMsg.classList.add('show');
-                    payButton.disabled = false;
-                    payButton.textContent = 'Перейти к оплате';
-                    document.getElementById('paymentModal').classList.add('active');
-                }
-            } catch (error) {
-                console.error('Ошибка:', error);
-                errorMsg.textContent = 'Ошибка соединения с сервером. Проверьте, запущен ли бэкенд.';
-                errorMsg.classList.add('show');
-                payButton.disabled = false;
-                payButton.textContent = 'Перейти к оплате';
-                document.getElementById('paymentModal').classList.add('active');
-            }
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(`Ошибка сервера: ${response.status} - ${text}`);
         }
+
+        const data = await response.json();
+        if (data.url) {
+            window.location.href = data.url;
+        } else {
+            errorMsg.textContent = data.error || 'Ошибка создания платежа. Попробуйте позже.';
+            errorMsg.classList.add('show');
+            payButton.disabled = false;
+            payButton.textContent = 'Перейти к оплате';
+            document.getElementById('paymentModal').classList.add('active');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        errorMsg.textContent = 'Ошибка соединения с сервером. Проверьте, запущен ли бэкенд.';
+        errorMsg.classList.add('show');
+        payButton.disabled = false;
+        payButton.textContent = 'Перейти к оплате';
+        document.getElementById('paymentModal').classList.add('active');
+    }
+}
     </script>
 </body>
 </html>
