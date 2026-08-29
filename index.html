@@ -180,7 +180,6 @@
         .card:nth-child(6) { animation-delay: 0.30s; }
         .card:nth-child(7) { animation-delay: 0.35s; }
         .card:nth-child(8) { animation-delay: 0.40s; }
-        .card:nth-child(9) { animation-delay: 0.45s; }
 
         @keyframes cardAppear {
             to { opacity: 1; transform: translateY(0); }
@@ -361,78 +360,6 @@
         .modal .error-msg { color: #f85149; font-size: 0.85rem; margin-top: 6px; display: none; }
         .modal .error-msg.show { display: block; }
 
-        /* ===== Предупреждение ===== */
-        .modal-warning {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            backdrop-filter: blur(10px);
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-        }
-        .modal-warning.active { display: flex; }
-        .modal-warning .modal-content {
-            background: var(--bg);
-            max-width: 540px;
-            width: 95%;
-            padding: 32px 28px;
-            border-radius: 24px;
-            border: 2px solid #ff4444;
-            box-shadow: 0 20px 60px rgba(255, 68, 68, 0.3);
-            text-align: center;
-            animation: modalSlide 0.3s ease;
-        }
-        .modal-warning .modal-content h2 {
-            font-size: 2rem;
-            font-weight: 900;
-            color: #ff4444;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .modal-warning .modal-content p {
-            font-size: 1rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-        }
-        .modal-warning .modal-content .highlight {
-            display: inline-block;
-            background: #2ea043;
-            color: #fff;
-            padding: 4px 16px;
-            border-radius: 40px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-        .modal-warning .modal-content .timer-text {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-top: 12px;
-        }
-        .modal-warning .modal-content .btn-continue {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            background: #238636;
-            color: #fff;
-            font-weight: 700;
-            font-size: 1rem;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s, opacity 0.2s;
-            margin-top: 16px;
-        }
-        .modal-warning .modal-content .btn-continue:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .modal-warning .modal-content .btn-continue:hover:not(:disabled) {
-            background: #2ea043;
-        }
-
         .footer {
             padding-top: 24px;
             border-top: 1px solid var(--border);
@@ -486,13 +413,7 @@
         </section>
 
         <div class="cards">
-            <div class="card">
-                <div class="icon"><i class="fas fa-star"></i></div>
-                <div class="rank">VIP</div>
-                <div class="price">19 <small>₽</small></div>
-                <div class="desc">🏠 2 дома<br>🎁 Стартовый набор</div>
-                <button class="btn-buy" data-product-id="989053" data-rank="VIP"><span>Купить</span></button>
-            </div>
+            <!-- PREMIUM -->
             <div class="card">
                 <div class="icon"><i class="fas fa-crown"></i></div>
                 <div class="rank">PREMIUM</div>
@@ -500,6 +421,7 @@
                 <div class="desc">🏠 3 дома<br>🎁 Улучшенный кит</div>
                 <button class="btn-buy" data-product-id="989054" data-rank="PREMIUM"><span>Купить</span></button>
             </div>
+            <!-- SILVER -->
             <div class="card">
                 <div class="icon"><i class="fas fa-shield"></i></div>
                 <div class="rank">SILVER</div>
@@ -507,6 +429,7 @@
                 <div class="desc">🏠 5 домов<br>🎁 Серебряный кит</div>
                 <button class="btn-buy" data-product-id="989055" data-rank="SILVER"><span>Купить</span></button>
             </div>
+            <!-- GOLD -->
             <div class="card">
                 <div class="icon"><i class="fas fa-shield-halved"></i></div>
                 <div class="rank">GOLD</div>
@@ -514,6 +437,7 @@
                 <div class="desc">🏠 7 домов<br>🎁 Золотой кит</div>
                 <button class="btn-buy" data-product-id="989056" data-rank="GOLD"><span>Купить</span></button>
             </div>
+            <!-- DIAMOND -->
             <div class="card">
                 <div class="icon"><i class="fas fa-gem"></i></div>
                 <div class="rank">DIAMOND</div>
@@ -521,6 +445,7 @@
                 <div class="desc">🏠 10 домов<br>💎 Алмазный кит</div>
                 <button class="btn-buy" data-product-id="989057" data-rank="DIAMOND"><span>Купить</span></button>
             </div>
+            <!-- PLATINUM -->
             <div class="card">
                 <div class="icon"><i class="fas fa-bolt"></i></div>
                 <div class="rank">PLATINUM</div>
@@ -528,6 +453,7 @@
                 <div class="desc">🏠 12 домов<br>💎 Алмазный кит (улучшенный)</div>
                 <button class="btn-buy" data-product-id="989059" data-rank="PLATINUM"><span>Купить</span></button>
             </div>
+            <!-- RICH -->
             <div class="card">
                 <div class="icon"><i class="fas fa-coins"></i></div>
                 <div class="rank">RICH</div>
@@ -535,6 +461,7 @@
                 <div class="desc">🏠 15 домов<br>💎 Алмазный кит (максимальный)<br>🌍 1 варп</div>
                 <button class="btn-buy" data-product-id="989060" data-rank="RICH"><span>Купить</span></button>
             </div>
+            <!-- TITANIUM -->
             <div class="card">
                 <div class="icon"><i class="fas fa-microchip"></i></div>
                 <div class="rank">TITANIUM</div>
@@ -542,6 +469,7 @@
                 <div class="desc">🏠 18 домов<br>💎 Алмазный кит (элитный)<br>🌍 2 варпа</div>
                 <button class="btn-buy" data-product-id="989061" data-rank="TITANIUM"><span>Купить</span></button>
             </div>
+            <!-- PRIME -->
             <div class="card" style="border-color: #d4af37;">
                 <div class="icon" style="color: #d4af37;"><i class="fas fa-king"></i></div>
                 <div class="rank" style="color: #d4af37;">PRIME</div>
@@ -577,9 +505,8 @@
             </div>
 
             <div id="offerText" class="offer-text">
-                <!-- Ваша оферта (вставьте свой текст) -->
+                <!-- Вставьте сюда текст оферты -->
                 <div class="section"><strong>ПУБЛИЧНАЯ ОФЕРТА</strong><br>...</div>
-                <!-- остальные разделы -->
             </div>
 
             <div id="errorMsg" class="error-msg"></div>
@@ -588,25 +515,9 @@
         </div>
     </div>
 
-    <!-- ===== Окно-предупреждение ===== -->
-    <div class="modal-warning" id="warningModal">
-        <div class="modal-content">
-            <h2>⚠️ ВНИМАНИЕ!!!!!</h2>
-            <p>
-                <strong>При оплате через СБП</strong> комиссия составляет <strong>всего 9%</strong>.
-            </p>
-            <p>
-                При оплате <strong>картой или другими способами</strong> комиссия может быть <strong>огромной</strong> – например, <strong>19 ₽ превращаются в 50 ₽</strong>.
-            </p>
-            <div class="highlight">Рекомендуем использовать СБП – это выгодно!</div>
-            <div class="timer-text" id="timerText">Подождите <span id="countdown">10</span> секунд</div>
-            <button class="btn-continue" id="continueBtn" disabled>Продолжить оплату</button>
-        </div>
-    </div>
-
     <script>
         // ============================================================
-        //  ВЕСЬ СКРИПТ (без промокодов)
+        //  СКРИПТ (без VIP и без предупреждения)
         // ============================================================
 
         // ===== ПЕРЕМЕННЫЕ =====
@@ -614,9 +525,8 @@
         const SHOP_ID = 244378;
 
         let selectedProductId = null;
-        let selectedRankName = '';
 
-        // ===== ЧАСТИЦЫ (без изменений) =====
+        // ===== ЧАСТИЦЫ =====
         const canvas = document.getElementById('particles-canvas');
         const ctx = canvas.getContext('2d');
         let particles = [];
@@ -694,7 +604,6 @@
         document.querySelectorAll('.btn-buy').forEach(btn => {
             btn.addEventListener('click', function() {
                 selectedProductId = parseInt(this.dataset.productId);
-                selectedRankName = this.dataset.rank;
                 document.getElementById('playerName').value = '';
                 document.getElementById('playerEmail').value = '';
                 document.getElementById('agreeCheck').checked = false;
@@ -728,7 +637,7 @@
             document.getElementById('payButton').disabled = !this.checked;
         });
 
-        // ===== ОПЛАТА С ПРЕДУПРЕЖДЕНИЕМ =====
+        // ===== КНОПКА ОПЛАТЫ (без предупреждения) =====
         document.getElementById('payButton').addEventListener('click', function() {
             const nickname = document.getElementById('playerName').value.trim();
             const email = document.getElementById('playerEmail').value.trim();
@@ -741,38 +650,8 @@
             }
             errorMsg.classList.remove('show');
 
-            // Скрыть основную модалку
-            document.getElementById('paymentModal').classList.remove('active');
-
-            // Показать предупреждение
-            const warningModal = document.getElementById('warningModal');
-            warningModal.classList.add('active');
-
-            const continueBtn = document.getElementById('continueBtn');
-            const countdownSpan = document.getElementById('countdown');
-            let seconds = 10;
-            countdownSpan.textContent = seconds;
-            continueBtn.disabled = true;
-            continueBtn.textContent = 'Продолжить оплату';
-            document.getElementById('timerText').innerHTML = `Подождите <span id="countdown">10</span> секунд`;
-
-            const timer = setInterval(() => {
-                seconds--;
-                countdownSpan.textContent = seconds;
-                if (seconds <= 0) {
-                    clearInterval(timer);
-                    continueBtn.disabled = false;
-                    document.getElementById('timerText').innerHTML = '✅ Теперь можно продолжить';
-                }
-            }, 1000);
-
-            continueBtn.onclick = function() {
-                if (this.disabled) return;
-                warningModal.classList.remove('active');
-                document.getElementById('paymentModal').classList.add('active');
-                clearInterval(timer);
-                executePayment(nickname, email);
-            };
+            // Сразу выполняем платёж
+            executePayment(nickname, email);
         });
 
         // ===== ВЫПОЛНЕНИЕ ПЛАТЕЖА =====
