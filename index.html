@@ -1,816 +1,1163 @@
 <!DOCTYPE html>
 <html lang="ru" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuarSMP — ванильное выживание</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        /* ===== Глобальные переменные ===== */
-        :root {
-            --bg: #0b0e1a;
-            --surface: rgba(255,255,255,0.05);
-            --surface-hover: rgba(255,255,255,0.10);
-            --border: rgba(255,255,255,0.08);
-            --text: #f0f4fa;
-            --text-secondary: #9aabbf;
-            --accent: #6c8cff;
-            --accent-glow: rgba(108,140,255,0.2);
-            --shadow: 0 20px 60px rgba(0,0,0,0.5);
-            --radius: 24px;
-            --transition: 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-        [data-theme="light"] {
-            --bg: #f2f6fa;
-            --surface: rgba(0,0,0,0.03);
-            --surface-hover: rgba(0,0,0,0.06);
-            --border: rgba(0,0,0,0.06);
-            --text: #1a2634;
-            --text-secondary: #5a6f85;
-            --accent: #3b6eff;
-            --accent-glow: rgba(59,110,255,0.15);
-            --shadow: 0 20px 60px rgba(0,0,0,0.06);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LuarSMP — Магазин</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{
+  --accent:#4a9eff;
+  --accent-2:#7c5cff;
+  --accent-3:#00d4ff;
+  --bg-1:#050914;
+  --bg-2:#0a1428;
+  --bg-3:#0d1e3d;
+  --surface:rgba(255,255,255,0.04);
+  --surface-hover:rgba(255,255,255,0.09);
+  --border:rgba(120,170,255,0.12);
+  --border-hover:rgba(120,170,255,0.35);
+  --text:#eef4ff;
+  --text-2:#8fa5c4;
+  --text-3:#5a708f;
+  --shadow:0 20px 60px rgba(0,40,120,0.35);
+  --radius:18px;
+  --tr:0.45s cubic-bezier(0.22,1,0.36,1);
+}
+[data-theme="light"]{
+  --bg-1:#eaf1fb;
+  --bg-2:#d8e5f8;
+  --bg-3:#c8dbf4;
+  --surface:rgba(255,255,255,0.7);
+  --surface-hover:rgba(255,255,255,0.95);
+  --border:rgba(70,120,200,0.18);
+  --border-hover:rgba(70,120,200,0.45);
+  --text:#0a1a33;
+  --text-2:#4a6180;
+  --text-3:#8398b3;
+  --shadow:0 20px 60px rgba(70,120,200,0.2);
+}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: var(--bg);
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: var(--text);
-            min-height: 100vh;
-            padding: 20px;
-            transition: background var(--transition), color var(--transition);
-            position: relative;
-            overflow-x: hidden;
-        }
-        #particles-canvas {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            width: 100%;
-            height: 100%;
-        }
-        .bg-glow {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background: radial-gradient(circle at 20% 30%, var(--accent-glow), transparent 60%),
-                        radial-gradient(circle at 80% 70%, rgba(179,136,255,0.1), transparent 50%);
-            transition: background var(--transition);
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
-        }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 20px 0 16px;
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 48px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .header .brand {
-            font-size: 2.2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--accent), #b388ff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
-        }
-        .header .controls {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .header .ip {
-            background: var(--surface);
-            backdrop-filter: blur(8px);
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-            transition: border-color var(--transition);
-        }
-        .header .ip i { color: var(--accent); margin-right: 8px; }
-        .header .ip:hover { border-color: var(--accent); }
-        .theme-toggle {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 8px 18px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            backdrop-filter: blur(8px);
-            transition: all var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .theme-toggle:hover { background: var(--surface-hover); border-color: var(--accent); }
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:'Inter','Segoe UI',-apple-system,sans-serif;
+  background:linear-gradient(135deg,var(--bg-1) 0%,var(--bg-2) 50%,var(--bg-3) 100%);
+  background-attachment:fixed;
+  color:var(--text);
+  min-height:100vh;
+  overflow-x:hidden;
+  transition:background .5s ease,color .5s ease;
+  position:relative;
+}
 
-        .hero {
-            margin-bottom: 48px;
-            animation: fadeUp 0.8s ease forwards;
-            opacity: 0;
-        }
-        .hero h1 {
-            font-size: 3.2rem;
-            font-weight: 700;
-            letter-spacing: -1px;
-            line-height: 1.2;
-        }
-        .hero h1 i { color: var(--accent); margin-right: 10px; }
-        .hero .sub {
-            font-size: 1.15rem;
-            color: var(--text-secondary);
-            margin-top: 8px;
-            font-weight: 300;
-        }
-        .hero .badge {
-            display: inline-block;
-            margin-top: 16px;
-            background: var(--surface);
-            padding: 6px 20px;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(8px);
-        }
-        .hero .badge i { color: var(--accent); margin-right: 6px; }
+/* ========== 3D КУБ НА ФОНЕ ========== */
+#cube-stage{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  perspective:1400px;
+  overflow:hidden;
+}
+#cube-wrap{
+  position:absolute;
+  top:50%;
+  left:25%;
+  transform:translate(-50%,-50%);
+  transition:left 0.9s cubic-bezier(0.22,1,0.36,1),transform .9s cubic-bezier(0.22,1,0.36,1);
+  transform-style:preserve-3d;
+  width:280px;height:280px;
+}
+#cube-wrap.pos-left{left:8%}
+#cube-wrap.pos-center{left:50%}
+#cube-wrap.pos-right{left:92%}
+#cube{
+  position:relative;
+  width:100%;height:100%;
+  transform-style:preserve-3d;
+  animation:spin 22s linear infinite;
+}
+@keyframes spin{
+  0%{transform:rotateX(-25deg) rotateY(0deg)}
+  100%{transform:rotateX(-25deg) rotateY(360deg)}
+}
+.face{
+  position:absolute;
+  width:280px;height:280px;
+  border:1.5px solid rgba(74,158,255,0.35);
+  background:linear-gradient(135deg,rgba(74,158,255,0.08),rgba(124,92,255,0.05));
+  box-shadow:inset 0 0 60px rgba(74,158,255,0.15);
+  backdrop-filter:blur(2px);
+}
+.f1{transform:translateZ(140px)}
+.f2{transform:rotateY(180deg) translateZ(140px)}
+.f3{transform:rotateY(90deg) translateZ(140px)}
+.f4{transform:rotateY(-90deg) translateZ(140px)}
+.f5{transform:rotateX(90deg) translateZ(140px)}
+.f6{transform:rotateX(-90deg) translateZ(140px)}
 
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 24px;
-            margin: 32px 0 56px;
-        }
-        .card {
-            background: var(--surface);
-            backdrop-filter: blur(12px);
-            border-radius: var(--radius);
-            padding: 28px 20px 24px;
-            border: 1px solid var(--border);
-            text-align: center;
-            transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: var(--shadow);
-            opacity: 0;
-            animation: cardAppear 0.6s ease forwards;
-        }
-        .card:nth-child(1) { animation-delay: 0.05s; }
-        .card:nth-child(2) { animation-delay: 0.10s; }
-        .card:nth-child(3) { animation-delay: 0.15s; }
-        .card:nth-child(4) { animation-delay: 0.20s; }
-        .card:nth-child(5) { animation-delay: 0.25s; }
-        .card:nth-child(6) { animation-delay: 0.30s; }
-        .card:nth-child(7) { animation-delay: 0.35s; }
-        .card:nth-child(8) { animation-delay: 0.40s; }
+.glow-orb{
+  position:fixed;
+  border-radius:50%;
+  filter:blur(90px);
+  pointer-events:none;
+  z-index:0;
+  opacity:.55;
+}
+.orb-1{width:520px;height:520px;background:var(--accent);top:-180px;left:-120px}
+.orb-2{width:420px;height:420px;background:var(--accent-2);bottom:-160px;right:-100px}
 
-        @keyframes cardAppear {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .card:hover {
-            transform: translateY(-8px);
-            border-color: var(--accent);
-            box-shadow: 0 20px 60px var(--accent-glow);
-        }
-        .card .icon {
-            font-size: 2.6rem;
-            margin-bottom: 10px;
-            color: var(--accent);
-            transition: transform 0.4s, color 0.4s;
-        }
-        .card:hover .icon { transform: scale(1.15) rotate(3deg); color: #b388ff; }
-        .card .rank {
-            font-size: 1.3rem;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-            margin-bottom: 4px;
-        }
-        .card .price {
-            font-size: 2.4rem;
-            font-weight: 800;
-            color: var(--accent);
-            margin: 8px 0 6px;
-            transition: color 0.4s;
-        }
-        .card:hover .price { color: #b388ff; }
-        .card .price small { font-size: 1rem; font-weight: 400; color: var(--text-secondary); }
-        .card .desc {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            line-height: 1.5;
-            margin: 6px 0 20px;
-            min-height: 60px;
-            transition: color 0.4s;
-        }
-        .card:hover .desc { color: var(--text); }
-        .card .btn-buy {
-            width: 100%;
-            padding: 14px 0;
-            border-radius: 60px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-            letter-spacing: 0.3px;
-            position: relative;
-            overflow: hidden;
-        }
-        .card .btn-buy::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, var(--accent), #b388ff);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-        .card .btn-buy span { position: relative; z-index: 1; }
-        .card .btn-buy:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 30px var(--accent-glow);
-        }
-        .card .btn-buy:hover::after { opacity: 1; }
-        .card .btn-buy:active { transform: scale(0.97); }
+/* ========== ХЕДЕР ========== */
+header{
+  position:sticky;
+  top:0;
+  z-index:100;
+  padding:16px 28px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:rgba(5,9,20,0.55);
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+  border-bottom:1px solid var(--border);
+  transition:background .5s ease;
+}
+[data-theme="light"] header{background:rgba(240,246,255,0.65)}
 
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal {
-            background: var(--bg);
-            max-width: 640px;
-            width: 95%;
-            padding: 32px 28px;
-            border-radius: 24px;
-            border: 1px solid var(--border);
-            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-            max-height: 92vh;
-            overflow-y: auto;
-            position: relative;
-            animation: modalSlide 0.3s ease;
-        }
-        @keyframes modalSlide {
-            from { opacity: 0; transform: translateY(30px) scale(0.96); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        .modal .close {
-            position: absolute;
-            top: 14px;
-            right: 20px;
-            font-size: 1.8rem;
-            color: var(--text-secondary);
-            cursor: pointer;
-            background: none;
-            border: none;
-            transition: color 0.2s, transform 0.2s;
-        }
-        .modal .close:hover { color: var(--text); transform: rotate(90deg); }
-        .modal h2 { color: var(--text); font-weight: 700; font-size: 1.4rem; margin-bottom: 16px; }
-        .modal label { display: block; font-weight: 500; color: var(--text-secondary); margin: 12px 0 4px; font-size: 0.85rem; }
-        .modal input[type="text"], .modal input[type="email"] {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--surface);
-            color: var(--text);
-            font-size: 0.95rem;
-            outline: none;
-            margin-bottom: 8px;
-            transition: border-color 0.2s;
-        }
-        .modal input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
-        .modal .agree {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin: 16px 0 12px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-        .modal .agree input[type="checkbox"] {
-            margin-top: 3px;
-            accent-color: var(--accent);
-            width: 18px;
-            height: 18px;
-            flex-shrink: 0;
-        }
-        .modal .agree a { color: var(--accent); text-decoration: underline; cursor: pointer; }
-        .modal .agree a:hover { color: #b388ff; }
+.brand{
+  display:flex;align-items:center;gap:12px;
+  font-size:1.35rem;font-weight:800;letter-spacing:.3px;
+}
+.brand .logo{
+  width:38px;height:38px;border-radius:11px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;
+  box-shadow:0 8px 24px rgba(74,158,255,0.4);
+  font-size:1.1rem;
+}
+.brand span{
+  background:linear-gradient(135deg,var(--accent-3),var(--accent),var(--accent-2));
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
 
-        .offer-text {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            background: var(--surface);
-            padding: 16px;
-            border-radius: 12px;
-            border-left: 3px solid var(--accent);
-            margin: 8px 0 16px;
-            max-height: 340px;
-            overflow-y: auto;
-            display: none;
-            white-space: pre-wrap;
-            line-height: 1.6;
-        }
-        .offer-text.show { display: block; }
-        .offer-text strong { color: var(--text); }
-        .offer-text .section { margin-bottom: 14px; }
+.header-actions{display:flex;align-items:center;gap:12px}
 
-        .modal .btn-pay {
-            width: 100%;
-            padding: 14px;
-            border-radius: 12px;
-            background: #238636;
-            color: #fff;
-            font-weight: 700;
-            font-size: 1rem;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s, transform 0.15s;
-        }
-        .modal .btn-pay:hover { background: #2ea043; transform: scale(1.02); }
-        .modal .btn-pay:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-        .modal .error-msg { color: #f85149; font-size: 0.85rem; margin-top: 6px; display: none; }
-        .modal .error-msg.show { display: block; }
+.icon-btn{
+  width:42px;height:42px;border-radius:12px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  color:var(--text);
+  cursor:pointer;
+  display:grid;place-items:center;
+  font-size:1rem;
+  transition:all var(--tr);
+  position:relative;
+  overflow:hidden;
+}
+.icon-btn:hover{
+  background:var(--surface-hover);
+  border-color:var(--border-hover);
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(74,158,255,0.25);
+}
 
-        .footer {
-            padding-top: 24px;
-            border-top: 1px solid var(--border);
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            animation: fadeUp 0.8s ease forwards;
-            opacity: 0;
-            animation-delay: 0.5s;
-        }
-        @keyframes fadeUp {
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @media (max-width: 768px) {
-            .header { flex-direction: column; align-items: stretch; gap: 12px; }
-            .header .controls { flex-wrap: wrap; justify-content: center; }
-            .hero h1 { font-size: 2.6rem; }
-            .cards { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
-            .card { padding: 20px 14px; }
-            .card .price { font-size: 2rem; }
-            .modal { padding: 24px 16px; }
-        }
-        @media (max-width: 480px) {
-            .cards { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-            .card { padding: 16px 10px; }
-            .card .rank { font-size: 1rem; }
-            .card .price { font-size: 1.6rem; }
-            .hero h1 { font-size: 2rem; }
-        }
-    </style>
+.login-btn{
+  padding:10px 22px;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;
+  border:none;
+  font-weight:600;
+  cursor:pointer;
+  font-size:.92rem;
+  display:flex;align-items:center;gap:8px;
+  transition:all var(--tr);
+  box-shadow:0 8px 24px rgba(74,158,255,0.3);
+  position:relative;
+  overflow:hidden;
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(74,158,255,0.5)}
+
+.user-chip{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 14px 6px 6px;
+  border-radius:32px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  cursor:pointer;
+  transition:all var(--tr);
+}
+.user-chip:hover{border-color:var(--border-hover);background:var(--surface-hover)}
+.user-chip .avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;
+  font-weight:700;font-size:.85rem;color:#fff;
+}
+.user-chip .uname{font-size:.9rem;font-weight:600}
+
+/* ========== ОСНОВНОЙ КОНТЕНТ ========== */
+main{
+  position:relative;
+  z-index:2;
+  max-width:1180px;
+  margin:0 auto;
+  padding:40px 24px 180px;
+}
+
+.tab-panel{
+  display:none;
+  animation:panelIn .6s cubic-bezier(0.22,1,0.36,1) both;
+}
+.tab-panel.active{display:block}
+@keyframes panelIn{
+  from{opacity:0;transform:translateY(24px) scale(0.98);filter:blur(6px)}
+  to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}
+}
+
+.panel-title{
+  font-size:2rem;
+  font-weight:800;
+  margin-bottom:8px;
+  letter-spacing:-.5px;
+}
+.panel-sub{
+  color:var(--text-2);
+  margin-bottom:32px;
+  font-size:.98rem;
+}
+
+/* ========== ТОВАРЫ (СТРОЧКАМИ) ========== */
+.products{display:flex;flex-direction:column;gap:14px}
+
+.product-row{
+  display:grid;
+  grid-template-columns:64px 1fr auto auto;
+  gap:20px;
+  align-items:center;
+  padding:20px 24px;
+  background:var(--surface);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  transition:all var(--tr);
+  cursor:pointer;
+  position:relative;
+  overflow:hidden;
+}
+.product-row::before{
+  content:'';
+  position:absolute;
+  left:0;top:0;bottom:0;
+  width:3px;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  opacity:0;
+  transition:opacity var(--tr);
+}
+.product-row:hover{
+  border-color:var(--border-hover);
+  background:var(--surface-hover);
+  transform:translateX(6px);
+  box-shadow:0 12px 40px rgba(74,158,255,0.15);
+}
+.product-row:hover::before{opacity:1}
+
+.p-icon{
+  width:64px;height:64px;
+  border-radius:16px;
+  display:grid;place-items:center;
+  font-size:1.6rem;
+  background:linear-gradient(135deg,rgba(74,158,255,0.15),rgba(124,92,255,0.1));
+  border:1px solid var(--border);
+  color:var(--accent-3);
+}
+
+.p-info h3{font-size:1.08rem;font-weight:700;margin-bottom:4px}
+.p-info p{color:var(--text-2);font-size:.86rem;line-height:1.4}
+
+.p-price{
+  font-size:1.35rem;
+  font-weight:800;
+  color:var(--accent-3);
+  white-space:nowrap;
+}
+.p-price small{font-size:.75rem;color:var(--text-2);font-weight:400;margin-left:2px}
+
+.p-buy{
+  padding:10px 24px;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;border:none;
+  font-weight:600;cursor:pointer;
+  font-size:.88rem;
+  transition:all var(--tr);
+  white-space:nowrap;
+  position:relative;
+  overflow:hidden;
+}
+.p-buy:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(74,158,255,0.4)}
+
+/* ========== АРХИВ ========== */
+.archive-card{
+  display:flex;
+  gap:24px;
+  align-items:center;
+  padding:28px;
+  background:var(--surface);
+  backdrop-filter:blur(18px);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  transition:all var(--tr);
+}
+.archive-card:hover{border-color:var(--border-hover);background:var(--surface-hover)}
+.archive-icon{
+  width:88px;height:88px;
+  border-radius:20px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;
+  font-size:2.4rem;color:#fff;
+  box-shadow:0 12px 32px rgba(74,158,255,0.35);
+  flex-shrink:0;
+}
+.archive-info{flex:1}
+.archive-info h3{font-size:1.25rem;font-weight:700;margin-bottom:6px}
+.archive-info p{color:var(--text-2);font-size:.9rem;line-height:1.5;margin-bottom:6px}
+.archive-info .ver{font-size:.8rem;color:var(--text-3)}
+
+.download-btn{
+  padding:14px 32px;
+  border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;border:none;
+  font-weight:700;font-size:.95rem;
+  cursor:pointer;
+  display:flex;align-items:center;gap:10px;
+  transition:all var(--tr);
+  box-shadow:0 10px 30px rgba(74,158,255,0.35);
+  text-decoration:none;
+}
+.download-btn:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(74,158,255,0.55)}
+
+/* ========== АККАУНТ ========== */
+.account-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+.account-block{
+  padding:24px;
+  background:var(--surface);
+  backdrop-filter:blur(18px);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+.account-block h4{
+  font-size:.8rem;text-transform:uppercase;
+  letter-spacing:1.2px;color:var(--text-2);
+  margin-bottom:14px;font-weight:600;
+}
+.account-block .big-value{font-size:1.35rem;font-weight:700;margin-bottom:6px}
+.account-block .sub-value{font-size:.86rem;color:var(--text-2)}
+
+.ops-list{display:flex;flex-direction:column;gap:10px}
+.op-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 14px;
+  background:rgba(255,255,255,0.02);
+  border-radius:10px;
+  font-size:.88rem;
+  border-left:2px solid var(--accent);
+}
+.op-item .op-sum{color:var(--accent-3);font-weight:700}
+
+.logout-btn{
+  margin-top:20px;
+  padding:12px 28px;
+  border-radius:12px;
+  background:rgba(255,80,80,0.12);
+  border:1px solid rgba(255,80,80,0.3);
+  color:#ff6b6b;
+  font-weight:600;cursor:pointer;
+  transition:all var(--tr);
+  display:flex;align-items:center;gap:8px;
+}
+.logout-btn:hover{background:rgba(255,80,80,0.22);transform:translateY(-2px)}
+
+/* ========== НИЖНИЕ ВКЛАДКИ (РАСКРЫВАЮТСЯ) ========== */
+.tab-dock{
+  position:fixed;
+  bottom:28px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:90;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.tab-dock-inner{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:8px;
+  background:rgba(5,9,20,0.7);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border:1px solid var(--border);
+  border-radius:24px;
+  box-shadow:0 20px 50px rgba(0,0,0,0.5);
+  transition:all var(--tr);
+  max-width:100px;
+  overflow:hidden;
+}
+[data-theme="light"] .tab-dock-inner{background:rgba(240,246,255,0.8)}
+.tab-dock:hover .tab-dock-inner{max-width:600px}
+
+.tab-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 22px;
+  border-radius:18px;
+  border:none;
+  background:transparent;
+  color:var(--text-2);
+  cursor:pointer;
+  font-weight:600;
+  font-size:.9rem;
+  white-space:nowrap;
+  transition:all var(--tr);
+  opacity:0;
+  transform:scale(0.8);
+  pointer-events:none;
+}
+.tab-dock:hover .tab-btn{opacity:1;transform:scale(1);pointer-events:auto}
+.tab-btn.current{opacity:1;transform:scale(1);pointer-events:auto}
+
+.tab-btn:hover{background:var(--surface-hover);color:var(--text)}
+.tab-btn.active{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;
+  box-shadow:0 8px 24px rgba(74,158,255,0.4);
+}
+
+.dock-handle{
+  padding:12px;
+  color:var(--text-2);
+  display:grid;place-items:center;
+  transition:all var(--tr);
+}
+.tab-dock:hover .dock-handle{display:none}
+
+/* ========== МОДАЛКИ ========== */
+.modal-overlay{
+  position:fixed;inset:0;
+  background:rgba(2,5,12,0.82);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  z-index:1000;
+  display:none;
+  align-items:center;justify-content:center;
+  padding:20px;
+}
+.modal-overlay.active{display:flex;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+.modal{
+  background:linear-gradient(160deg,rgba(10,20,40,0.98),rgba(5,9,20,0.98));
+  border:1px solid var(--border);
+  border-radius:24px;
+  padding:36px 32px;
+  max-width:440px;
+  width:100%;
+  max-height:90vh;
+  overflow-y:auto;
+  box-shadow:0 40px 100px rgba(0,0,0,0.6);
+  position:relative;
+  animation:modalIn .45s cubic-bezier(0.22,1,0.36,1);
+}
+[data-theme="light"] .modal{background:linear-gradient(160deg,rgba(255,255,255,0.98),rgba(240,246,255,0.98))}
+@keyframes modalIn{from{opacity:0;transform:translateY(30px) scale(0.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+
+.modal-close{
+  position:absolute;top:16px;right:18px;
+  background:none;border:none;
+  color:var(--text-2);font-size:1.6rem;
+  cursor:pointer;width:36px;height:36px;
+  border-radius:10px;
+  transition:all .3s ease;
+}
+.modal-close:hover{background:var(--surface-hover);color:var(--text);transform:rotate(90deg)}
+
+.modal h2{font-size:1.5rem;font-weight:800;margin-bottom:6px}
+.modal .sub{color:var(--text-2);font-size:.9rem;margin-bottom:24px}
+
+.field{margin-bottom:16px}
+.field label{
+  display:block;font-size:.78rem;
+  color:var(--text-2);text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:6px;font-weight:600;
+}
+.field input{
+  width:100%;
+  padding:13px 16px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:rgba(255,255,255,0.03);
+  color:var(--text);
+  font-size:.95rem;
+  outline:none;
+  transition:all .3s ease;
+}
+[data-theme="light"] .field input{background:rgba(255,255,255,0.7)}
+.field input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 4px rgba(74,158,255,0.15);
+}
+
+.submit-btn{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;border:none;
+  font-weight:700;font-size:.98rem;
+  cursor:pointer;
+  transition:all var(--tr);
+  margin-top:8px;
+  box-shadow:0 10px 28px rgba(74,158,255,0.35);
+}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(74,158,255,0.55)}
+
+.switch-link{
+  text-align:center;margin-top:18px;
+  font-size:.86rem;color:var(--text-2);
+}
+.switch-link a{
+  color:var(--accent);cursor:pointer;
+  text-decoration:none;font-weight:600;
+}
+.switch-link a:hover{text-decoration:underline}
+
+.error-msg{
+  color:#ff6b6b;font-size:.85rem;
+  margin-top:10px;display:none;
+  padding:10px 14px;
+  background:rgba(255,80,80,0.1);
+  border-radius:10px;
+  border-left:3px solid #ff6b6b;
+}
+.error-msg.show{display:block}
+.success-msg{
+  color:#4ade80;font-size:.85rem;
+  margin-top:10px;display:none;
+  padding:10px 14px;
+  background:rgba(74,222,128,0.1);
+  border-radius:10px;
+  border-left:3px solid #4ade80;
+}
+.success-msg.show{display:block}
+
+/* ========== ЭФФЕКТ ЛАВЫ НА КНОПКАХ ========== */
+.lava-canvas{
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:9999;
+}
+
+/* ========== АДАПТИВ ========== */
+@media(max-width:820px){
+  .product-row{grid-template-columns:52px 1fr auto;gap:14px;padding:16px}
+  .p-buy{grid-column:1/-1;width:100%;text-align:center}
+  .p-icon{width:52px;height:52px;font-size:1.3rem}
+  .account-grid{grid-template-columns:1fr}
+  .archive-card{flex-direction:column;text-align:center}
+  .tab-dock{left:12px;right:12px;transform:none}
+  .tab-dock-inner{max-width:100%}
+  .tab-dock:hover .tab-dock-inner{max-width:100%}
+  .tab-btn{opacity:1;transform:scale(1);pointer-events:auto;padding:10px 14px;font-size:.8rem}
+  .dock-handle{display:none}
+  .panel-title{font-size:1.5rem}
+  #cube-wrap{width:200px;height:200px}
+  .face{width:200px;height:200px}
+  .f1{transform:translateZ(100px)}
+  .f2{transform:rotateY(180deg) translateZ(100px)}
+  .f3{transform:rotateY(90deg) translateZ(100px)}
+  .f4{transform:rotateY(-90deg) translateZ(100px)}
+  .f5{transform:rotateX(90deg) translateZ(100px)}
+  .f6{transform:rotateX(-90deg) translateZ(100px)}
+}
+</style>
 </head>
 <body>
-    <canvas id="particles-canvas"></canvas>
-    <div class="bg-glow"></div>
 
-    <div class="container">
-        <header class="header">
-            <div class="brand">✦ LuarSMP</div>
-            <div class="controls">
-                <span class="ip"><i class="fas fa-server"></i> play.luarsmp.ru</span>
-                <button class="theme-toggle" id="themeToggle">
-                    <i class="fas fa-moon"></i> <span>Тема</span>
-                </button>
-            </div>
-        </header>
+<!-- ФОН: 3D КУБ -->
+<div id="cube-stage">
+  <div id="cube-wrap" class="pos-left">
+    <div id="cube">
+      <div class="face f1"></div>
+      <div class="face f2"></div>
+      <div class="face f3"></div>
+      <div class="face f4"></div>
+      <div class="face f5"></div>
+      <div class="face f6"></div>
+    </div>
+  </div>
+</div>
+<div class="glow-orb orb-1"></div>
+<div class="glow-orb orb-2"></div>
+<canvas class="lava-canvas" id="lavaCanvas"></canvas>
 
-        <section class="hero">
-            <h1><i class="fas fa-cube"></i>Ванильное выживание</h1>
-            <div class="sub">Чистый геймплей, никаких модов</div>
-            <span class="badge"><i class="fas fa-users"></i> 0 / 20</span>
-        </section>
+<!-- ХЕДЕР -->
+<header>
+  <div class="brand">
+    <div class="logo"><i class="fas fa-cube"></i></div>
+    <span>LuarSMP</span>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" id="themeBtn" title="Сменить тему"><i class="fas fa-moon"></i></button>
+    <button class="login-btn" id="loginBtn"><i class="fas fa-right-to-bracket"></i> Войти</button>
+    <div class="user-chip" id="userChip" style="display:none">
+      <div class="avatar" id="userAvatar">?</div>
+      <span class="uname" id="userName">—</span>
+    </div>
+  </div>
+</header>
 
-        <div class="cards">
-            <!-- PREMIUM -->
-            <div class="card">
-                <div class="icon"><i class="fas fa-crown"></i></div>
-                <div class="rank">PREMIUM</div>
-                <div class="price">49 <small>₽</small></div>
-                <div class="desc">🏠 3 дома<br>🎁 Улучшенный кит</div>
-                <button class="btn-buy" data-product-id="989054" data-rank="PREMIUM"><span>Купить</span></button>
-            </div>
-            <!-- SILVER -->
-            <div class="card">
-                <div class="icon"><i class="fas fa-shield"></i></div>
-                <div class="rank">SILVER</div>
-                <div class="price">99 <small>₽</small></div>
-                <div class="desc">🏠 5 домов<br>🎁 Серебряный кит</div>
-                <button class="btn-buy" data-product-id="989055" data-rank="SILVER"><span>Купить</span></button>
-            </div>
-            <!-- GOLD -->
-            <div class="card">
-                <div class="icon"><i class="fas fa-shield-halved"></i></div>
-                <div class="rank">GOLD</div>
-                <div class="price">199 <small>₽</small></div>
-                <div class="desc">🏠 7 домов<br>🎁 Золотой кит</div>
-                <button class="btn-buy" data-product-id="989056" data-rank="GOLD"><span>Купить</span></button>
-            </div>
-            <!-- DIAMOND -->
-            <div class="card">
-                <div class="icon"><i class="fas fa-gem"></i></div>
-                <div class="rank">DIAMOND</div>
-                <div class="price">299 <small>₽</small></div>
-                <div class="desc">🏠 10 домов<br>💎 Алмазный кит</div>
-                <button class="btn-buy" data-product-id="989057" data-rank="DIAMOND"><span>Купить</span></button>
-            </div>
-            <!-- PLATINUM -->
-            <div class="card">
-                <div class="icon"><i class="fas fa-bolt"></i></div>
-                <div class="rank">PLATINUM</div>
-                <div class="price">499 <small>₽</small></div>
-                <div class="desc">🏠 12 домов<br>💎 Алмазный кит (улучшенный)</div>
-                <button class="btn-buy" data-product-id="989059" data-rank="PLATINUM"><span>Купить</span></button>
-            </div>
-            <!-- RICH -->
-            <div class="card">
-                <div class="icon"><i class="fas fa-coins"></i></div>
-                <div class="rank">RICH</div>
-                <div class="price">699 <small>₽</small></div>
-                <div class="desc">🏠 15 домов<br>💎 Алмазный кит (максимальный)<br>🌍 1 варп</div>
-                <button class="btn-buy" data-product-id="989060" data-rank="RICH"><span>Купить</span></button>
-            </div>
-            <!-- TITANIUM -->
-            <div class="card">
-                <div class="icon"><i class="fas fa-microchip"></i></div>
-                <div class="rank">TITANIUM</div>
-                <div class="price">799 <small>₽</small></div>
-                <div class="desc">🏠 18 домов<br>💎 Алмазный кит (элитный)<br>🌍 2 варпа</div>
-                <button class="btn-buy" data-product-id="989061" data-rank="TITANIUM"><span>Купить</span></button>
-            </div>
-            <!-- PRIME -->
-            <div class="card" style="border-color: #d4af37;">
-                <div class="icon" style="color: #d4af37;"><i class="fas fa-king"></i></div>
-                <div class="rank" style="color: #d4af37;">PRIME</div>
-                <div class="price">999 <small>₽</small></div>
-                <div class="desc">🏠 25 домов<br>💎 Алмазный кит (легендарный)<br>🌍 5 варпов</div>
-                <button class="btn-buy" data-product-id="989062" data-rank="PRIME"><span>Купить</span></button>
-            </div>
-        </div>
+<!-- КОНТЕНТ -->
+<main>
 
-        <footer class="footer">
-            © 2026 LuarSMP
-        </footer>
+  <!-- ВКЛАДКА: ТОВАРЫ -->
+  <section class="tab-panel active" id="panel-shop">
+    <h1 class="panel-title">Магазин</h1>
+    <p class="panel-sub">Привилегии и предметы для твоего выживания</p>
+    <div class="products" id="productsList"></div>
+  </section>
+
+  <!-- ВКЛАДКА: АРХИВ -->
+  <section class="tab-panel" id="panel-archive">
+    <h1 class="panel-title">Архив</h1>
+    <p class="panel-sub">Файлы для скачивания</p>
+    <div class="archive-card">
+      <div class="archive-icon"><i class="fas fa-download"></i></div>
+      <div class="archive-info">
+        <h3>LuarLauncher</h3>
+        <p>Официальный лаунчер LuarSMP. Автоматическая установка, обновления, оптимизация и быстрый вход на сервер.</p>
+        <div class="ver">v0.1 · 128 МБ · Windows / Linux / macOS</div>
+      </div>
+      <a class="download-btn" href="https://archive.luarsmp.ru/LuarLauncher-v0.1.exe" download>
+        <i class="fas fa-download"></i> Скачать
+      </a>
+    </div>
+  </section>
+
+  <!-- ВКЛАДКА: АККАУНТ -->
+  <section class="tab-panel" id="panel-account">
+    <h1 class="panel-title">Аккаунт</h1>
+    <p class="panel-sub">Управление профилем</p>
+    <div id="accountContent"></div>
+  </section>
+
+</main>
+
+<!-- НИЖНИЕ ВКЛАДКИ -->
+<div class="tab-dock">
+  <div class="tab-dock-inner">
+    <div class="dock-handle"><i class="fas fa-chevron-up"></i></div>
+    <button class="tab-btn current active" data-tab="shop"><i class="fas fa-store"></i> Товары</button>
+    <button class="tab-btn" data-tab="archive"><i class="fas fa-box-archive"></i> Архив</button>
+    <button class="tab-btn" data-tab="account"><i class="fas fa-user"></i> Аккаунт</button>
+  </div>
+</div>
+
+<!-- МОДАЛКА: ВХОД / РЕГИСТРАЦИЯ -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" id="authClose">&times;</button>
+    <h2 id="authTitle">Вход</h2>
+    <p class="sub" id="authSub">Войди, чтобы покупать привилегии</p>
+
+    <!-- Вход -->
+    <div id="loginForm">
+      <div class="field">
+        <label>Ник</label>
+        <input type="text" id="loginNick" placeholder="Твой игровой ник">
+      </div>
+      <div class="field">
+        <label>Пароль</label>
+        <input type="password" id="loginPass" placeholder="••••••••">
+      </div>
+      <div class="error-msg" id="loginError"></div>
+      <button class="submit-btn" id="loginSubmit">Войти</button>
+      <div class="switch-link">Нет аккаунта? <a id="goRegister">Зарегистрироваться</a></div>
     </div>
 
-    <!-- ===== Модальное окно заказа ===== -->
-    <div class="modal-overlay" id="paymentModal">
-        <div class="modal">
-            <button class="close" id="modalClose">&times;</button>
-            <h2>Подтверждение заказа</h2>
-
-            <label>Игровой ник *</label>
-            <input type="text" id="playerName" placeholder="Ваш никнейм" required>
-
-            <label>Email (для чека, опционально)</label>
-            <input type="email" id="playerEmail" placeholder="example@mail.ru">
-
-            <div class="agree">
-                <input type="checkbox" id="agreeCheck">
-                <span>
-                    Я принимаю <a id="showOfferLink" href="#">условия оферты</a> и даю согласие на
-                    обработку <a id="showPersonalLink" href="#">персональных данных</a>.
-                </span>
-            </div>
-
-            <div id="offerText" class="offer-text">
-                <!-- ========== ПОЛНАЯ ОФЕРТА И СОГЛАСИЕ (с вашими данными) ========== -->
-                <div class="section">
-                    <strong>ПУБЛИЧНАЯ ОФЕРТА</strong><br>
-                    о предоставлении доступа к игровому серверу и продаже внутриигровых предметов (услуг)
-                    <br><br>
-                    г. Москва (публичная оферта, адрес не указывается)<br>
-                    Дата публикации: 29 августа 2026 г.
-                    <br><br>
-                    Настоящий документ является официальным предложением (публичной офертой) <strong>Самозанятый Чесноков Степан Евгеньевич</strong>, ИНН 263520600902 (далее – «Исполнитель»), адресованным неограниченному кругу лиц (далее – «Заказчик»), о заключении договора на предоставление доступа к игровому серверу LuarSMP и продаже внутриигровых предметов (далее – «Услуги») на условиях, изложенных ниже.
-                </div>
-                <div class="section">
-                    <strong>1. Термины и определения</strong><br>
-                    1.1. <strong>Сайт</strong> – интернет-страница, расположенная по адресу https://luarsmp.ru, через которую Заказчик может ознакомиться с Услугами и произвести их оплату.<br>
-                    1.2. <strong>Сервер</strong> – игровой сервер LuarSMP, доступный по адресу play.luarsmp.ru:25565, на котором Исполнитель предоставляет доступ к игровому процессу.<br>
-                    1.3. <strong>Товар</strong> – внутриигровая привилегия, предмет, валюта или иное игровое преимущество, перечисленное на Сайте и доступное для приобретения.<br>
-                    1.4. <strong>Акцепт</strong> – полное и безоговорочное принятие условий настоящей Оферты путём оплаты Товара.
-                </div>
-                <div class="section">
-                    <strong>2. Предмет договора</strong><br>
-                    2.1. Исполнитель обязуется предоставить Заказчику доступ к Серверу и/или передать Товар (внутриигровые предметы, привилегии, валюту) в соответствии с выбранным Заказчиком пакетом, а Заказчик обязуется оплатить Услуги в порядке и на условиях, предусмотренных настоящей Офертой.<br>
-                    2.2. Перечень и стоимость Товаров размещены на Сайте и являются неотъемлемой частью настоящей Оферты.
-                </div>
-                <div class="section">
-                    <strong>3. Порядок оказания Услуг</strong><br>
-                    3.1. Для получения Услуг Заказчик обязуется:<br>
-                    - Ознакомиться с условиями настоящей Оферты.<br>
-                    - Выбрать Товар на Сайте и указать свой игровой никнейм (Nickname), используемый на Сервере.<br>
-                    - Оплатить выбранный Товар через платёжную систему, предоставленную на Сайте.<br>
-                    - После оплаты Исполнитель в автоматическом режиме (через плагин или RCON) передаёт Заказчику Товар на Сервере.<br>
-                    3.2. Исполнитель не несёт ответственности за ошибки в указании никнейма Заказчиком. В случае ошибочного указания никнейма Товар не может быть передан другому игроку или возвращён.
-                </div>
-                <div class="section">
-                    <strong>4. Стоимость Услуг и порядок оплаты</strong><br>
-                    4.1. Стоимость каждого Товара указана на Сайте в рублях Российской Федерации.<br>
-                    4.2. Оплата производится через платёжную систему, доступную на Сайте (TradeMC). Заказчик оплачивает полную стоимость Товара без дополнительных комиссий, если иное не указано на странице оплаты.<br>
-                    4.3. Моментом оплаты считается поступление денежных средств на счёт Исполнителя в полном объёме.
-                </div>
-                <div class="section">
-                    <strong>5. Права и обязанности сторон</strong><br>
-                    5.1. <strong>Исполнитель обязуется:</strong><br>
-                    - Предоставить доступ к Серверу и/или передать Товар в течение 5 минут после подтверждения оплаты.<br>
-                    - Обеспечить работоспособность Сервера и Сайта в пределах своих технических возможностей.<br>
-                    - Не передавать персональные данные Заказчика третьим лицам, за исключением случаев, предусмотренных законодательством РФ.<br>
-                    5.2. <strong>Заказчик обязуется:</strong><br>
-                    - Соблюдать правила игрового сервера LuarSMP (размещены на Сайте или доступны по запросу).<br>
-                    - Не использовать Сервер и его ресурсы для противоправных действий, распространения вирусов, оскорблений, спама, мошенничества.<br>
-                    - Не нарушать авторские и смежные права на игровой контент.<br>
-                    - Не пытаться взломать, модифицировать или иным образом нарушать работу Сервера и Сайта.<br>
-                    5.3. <strong>Исполнитель имеет право:</strong><br>
-                    - В одностороннем порядке изменять условия настоящей Оферты с предварительным уведомлением на Сайте не менее чем за 3 дня до вступления изменений в силу.<br>
-                    - Приостановить или прекратить доступ Заказчика к Серверу в случае нарушения им правил сервера или условий Оферты без возврата оплаты.<br>
-                    - Отказать в предоставлении Услуг, если Заказчик не достиг возраста 14 лет или не имеет согласия родителей на совершение платежей.<br>
-                    5.4. <strong>Заказчик имеет право:</strong><br>
-                    - Получить Товар в полном объёме в соответствии с условиями оплаты.<br>
-                    - Отказаться от дальнейшего использования Услуг в любое время, однако оплаченные Товары возврату не подлежат (см. п. 6).
-                </div>
-                <div class="section">
-                    <strong>6. Возврат денежных средств</strong><br>
-                    6.1. Услуги, предоставляемые Исполнителем, являются информационно-развлекательными и не подлежат возврату в соответствии с Постановлением Правительства РФ № 2463 от 31.12.2020 (перечень непродовольственных товаров надлежащего качества, не подлежащих возврату и обмену).<br>
-                    6.2. Возврат денежных средств возможен <strong>ТОЛЬКО</strong> в следующих исключительных случаях:<br>
-                    - Услуга не была оказана по вине Исполнителя (например, Товар не был выдан в течение 24 часов после подтверждения оплаты).<br>
-                    - Ошибка в списании денежных средств (удвоение оплаты и т.п.).<br>
-                    6.3. Для инициирования возврата Заказчик обязан направить письменное заявление на email Исполнителя: <strong>stepan.3mail@mail.ru</strong> с указанием:<br>
-                    - Никнейма на Сервере.<br>
-                    - Даты и суммы платежа.<br>
-                    - Номера транзакции (чек).<br>
-                    - Причины возврата.<br>
-                    6.4. Исполнитель рассматривает заявление в течение 5 рабочих дней и принимает решение. В случае положительного решения возврат осуществляется тем же способом, которым был произведён платёж, в течение 10 рабочих дней.
-                </div>
-                <div class="section">
-                    <strong>7. Ответственность сторон</strong><br>
-                    7.1. Исполнитель <strong>не несёт ответственности</strong> за:<br>
-                    - Утерю, кражу или порчу внутриигровых предметов по вине самого Заказчика (передача пароля, взлом аккаунта, нарушение правил сервера).<br>
-                    - Перерывы в работе Сервера, вызванные техническими причинами (обновления, DDoS-атаки, сбои оборудования), если длительность перерыва не превышает 24 часов в месяц.<br>
-                    - Действия третьих лиц, направленные на нарушение работы Сервера или Сайта.<br>
-                    - Любые прямые или косвенные убытки Заказчика, связанные с использованием Сервера (включая упущенную выгоду).<br>
-                    7.2. Заказчик несёт полную ответственность за сохранность своего игрового аккаунта и пароля. Передача доступа к аккаунту третьим лицам осуществляется на свой страх и риск.<br>
-                    7.3. За нарушение правил сервера или условий Оферты Исполнитель имеет право ограничить доступ Заказчика к Серверу без возврата оплаты.
-                </div>
-                <div class="section">
-                    <strong>8. Срок действия оферты и порядок изменения</strong><br>
-                    8.1. Настоящая Оферта вступает в силу с момента её публикации на Сайте и действует бессрочно.<br>
-                    8.2. Исполнитель оставляет за собой право вносить изменения в условия Оферты. Новая редакция Оферты вступает в силу с момента её публикации на Сайте.
-                </div>
-                <div class="section">
-                    <strong>9. Применимое право и разрешение споров</strong><br>
-                    9.1. Настоящая Оферта регулируется законодательством Российской Федерации.<br>
-                    9.2. Все споры решаются путём переговоров. При недостижении согласия спор передаётся на рассмотрение в суд по месту нахождения Исполнителя (по его регистрации как самозанятого).
-                </div>
-                <div class="section">
-                    <strong>10. Реквизиты Исполнителя</strong><br>
-                    <strong>Исполнитель:</strong> Чесноков Степан Евгеньевич (самозанятый)<br>
-                    <strong>ИНН:</strong> 263520600902<br>
-                    <strong>Адрес:</strong> не указывается (для связи используйте email)<br>
-                    <strong>Электронная почта:</strong> stepan.3mail@mail.ru
-                </div>
-                <div class="section">
-                    <strong>СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ</strong><br>
-                    Я, действуя свободно, своей волей и в своём интересе, даю своё согласие <strong>Самозанятому Чеснокову Степану Евгеньевичу</strong> (ИНН 263520600902) (далее – «Оператор») на обработку моих персональных данных, предоставленных мной при оплате Услуг на сайте <strong>https://luarsmp.ru</strong>.
-                    <br><br>
-                    <strong>1. Перечень персональных данных</strong><br>
-                    1.1. Игровой никнейм (Nickname), используемый на сервере LuarSMP.<br>
-                    1.2. IP-адрес, с которого осуществляется подключение к Серверу и Сайту.<br>
-                    1.3. Адрес электронной почты (e-mail) — при его указании Заказчиком.<br>
-                    1.4. Сведения о платеже (сумма, дата, номер транзакции).
-                    <br><br>
-                    <strong>2. Цели обработки персональных данных</strong><br>
-                    2.1. Оказание информационно-развлекательных услуг (выдача внутриигровых привилегий и предметов).<br>
-                    2.2. Идентификация Заказчика как игрока на Сервере LuarSMP.<br>
-                    2.3. Ведение статистики посещений и улучшение работы Сайта и Сервера.<br>
-                    2.4. Направление чеков и уведомлений об оплате (при указании e-mail).<br>
-                    2.5. Разрешение споров и претензий, связанных с оказанием Услуг.
-                    <br><br>
-                    <strong>3. Перечень действий с персональными данными</strong><br>
-                    Согласие даётся на сбор, запись, систематизацию, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, обезличивание, блокирование, удаление, уничтожение моих персональных данных.
-                    <br><br>
-                    <strong>4. Срок действия согласия</strong><br>
-                    Настоящее согласие действует бессрочно с момента его акцепта (постановки галочки при оформлении заказа) и до момента его отзыва мной в письменной форме.
-                    <br><br>
-                    <strong>5. Отзыв согласия</strong><br>
-                    Я осознаю, что могу отозвать своё согласие в любое время путём отправки письменного уведомления на электронный адрес Оператора: <strong>stepan.3mail@mail.ru</strong>. В случае отзыва согласия Оператор обязан прекратить обработку моих персональных данных и уничтожить их в течение 30 дней, если иное не предусмотрено законодательством РФ.
-                </div>
-            </div>
-
-            <div id="errorMsg" class="error-msg"></div>
-
-            <button class="btn-pay" id="payButton" disabled>Перейти к оплате</button>
-        </div>
+    <!-- Регистрация -->
+    <div id="registerForm" style="display:none">
+      <div class="field">
+        <label>Игровой ник</label>
+        <input type="text" id="regNick" placeholder="Твой игровой ник">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="example@mail.ru">
+      </div>
+      <div class="field">
+        <label>Пароль</label>
+        <input type="password" id="regPass" placeholder="Минимум 6 символов">
+      </div>
+      <div class="field">
+        <label>Повторите пароль</label>
+        <input type="password" id="regPass2" placeholder="••••••••">
+      </div>
+      <div class="error-msg" id="regError"></div>
+      <div class="success-msg" id="regSuccess"></div>
+      <button class="submit-btn" id="registerSubmit">Создать аккаунт</button>
+      <div class="switch-link">Уже есть аккаунт? <a id="goLogin">Войти</a></div>
     </div>
+  </div>
+</div>
 
-    <script>
-        // ============================================================
-        //  ОСНОВНОЙ СКРИПТ (без предупреждений и без промокодов)
-        // ============================================================
+<!-- МОДАЛКА: ПОКУПКА -->
+<div class="modal-overlay" id="buyModal">
+  <div class="modal">
+    <button class="modal-close" id="buyClose">&times;</button>
+    <h2>Подтверждение покупки</h2>
+    <p class="sub" id="buySub">—</p>
+    <div class="field">
+      <label>Сумма к оплате</label>
+      <input type="text" id="buyAmount" readonly>
+    </div>
+    <div class="error-msg" id="buyError"></div>
+    <button class="submit-btn" id="buySubmit">Перейти к оплате</button>
+  </div>
+</div>
 
-        // ===== ПЕРЕМЕННЫЕ =====
-        const BACKEND_URL = 'https://api.luarsmp.ru:8443';
-        const SHOP_ID = 244378;
-        let selectedProductId = null;
+<script>
+/* ===================================================== */
+/*  КОНФИГ                                               */
+/* ===================================================== */
+const BACKEND_URL = 'https://api.luarsmp.ru:8443';
+const ARCHIVE_URL = 'https://archive.luarsmp.ru';
 
-        // ===== ЧАСТИЦЫ =====
-        const canvas = document.getElementById('particles-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let w, h;
-        function resize() {
-            w = canvas.width = window.innerWidth;
-            h = canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
+/* ===================================================== */
+/*  ТОВАРЫ                                               */
+/* ===================================================== */
+const PRODUCTS = [
+  {id:989053, name:'Меч Погибели',       desc:'Зачарованный меч с уникальными способностями', icon:'fa-khanda',      price:149},
+  {id:989054, name:'Набор Бога',         desc:'Незеритовая броня + зачарованные инструменты', icon:'fa-shield-halved', price:399},
+  {id:989055, name:'Кираса Дракона',     desc:'Элитная броня с эффектами сопротивления',      icon:'fa-dragon',      price:299},
+  {id:989056, name:'Элитры',             desc:'Полёт по всему миру, без ограничений',         icon:'fa-feather',     price:199},
+  {id:989057, name:'Тотем Бессмертия x5',desc:'Пять тотемов для выживания в бою',             icon:'fa-heart-pulse', price:99},
+  {id:989059, name:'Набор ресурсов',     desc:'64 алмаза, 32 незерита, 16 изумрудов',         icon:'fa-gem',         price:249},
+  {id:989060, name:'Трезубец Посейдона', desc:'Трезубец с чарами Верности и Пронзателя',      icon:'fa-water',       price:179},
+  {id:989061, name:'Шалкер Крепкого',    desc:'Шалкер с 27 слотами для хранения',             icon:'fa-box',         price:129},
+  {id:989062, name:'Набор строителя',    desc:'1000 блоков разных типов на выбор',            icon:'fa-trowel-bricks', price:89}
+];
 
-        class Particle {
-            constructor() { this.reset(); }
-            reset() {
-                this.x = Math.random() * w;
-                this.y = Math.random() * h;
-                this.size = Math.random() * 2.5 + 1;
-                this.speedX = (Math.random() - 0.5) * 0.5;
-                this.speedY = (Math.random() - 0.5) * 0.5;
-                this.opacity = Math.random() * 0.5 + 0.2;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
-                if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
-            }
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(108, 140, 255, ${this.opacity})`;
-                ctx.fill();
-            }
-        }
-        for (let i = 0; i < 80; i++) particles.push(new Particle());
-        function animateParticles() {
-            ctx.clearRect(0, 0, w, h);
-            particles.forEach(p => { p.update(); p.draw(); });
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 150) {
-                        ctx.beginPath();
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.strokeStyle = `rgba(108, 140, 255, ${0.08 * (1 - dist/150)})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.stroke();
-                    }
-                }
-            }
-            requestAnimationFrame(animateParticles);
-        }
-        animateParticles();
+/* ===================================================== */
+/*  СОСТОЯНИЕ                                            */
+/* ===================================================== */
+let currentUser = null;
+let selectedProduct = null;
 
-        // ===== ТЕМА =====
-        const themeToggle = document.getElementById('themeToggle');
-        const html = document.documentElement;
-        let currentTheme = localStorage.getItem('theme') || 'dark';
-        html.setAttribute('data-theme', currentTheme);
-        const themeIcon = themeToggle.querySelector('i');
-        const themeText = themeToggle.querySelector('span');
-        themeIcon.className = `fas fa-${currentTheme === 'dark' ? 'moon' : 'sun'}`;
-        themeText.textContent = currentTheme === 'dark' ? 'Тёмная' : 'Светлая';
-        themeToggle.addEventListener('click', () => {
-            const newTheme = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            themeIcon.className = `fas fa-${newTheme === 'dark' ? 'moon' : 'sun'}`;
-            themeText.textContent = newTheme === 'dark' ? 'Тёмная' : 'Светлая';
-        });
+/* ===================================================== */
+/*  ЗАГРУЗКА ТОВАРОВ                                     */
+/* ===================================================== */
+function renderProducts(){
+  const list = document.getElementById('productsList');
+  list.innerHTML = PRODUCTS.map(p => `
+    <div class="product-row" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
+      <div class="p-icon"><i class="fas ${p.icon}"></i></div>
+      <div class="p-info">
+        <h3>${p.name}</h3>
+        <p>${p.desc}</p>
+      </div>
+      <div class="p-price">${p.price}<small>₽</small></div>
+      <button class="p-buy">Купить</button>
+    </div>
+  `).join('');
 
-        // ===== КНОПКИ "КУПИТЬ" =====
-        document.querySelectorAll('.btn-buy').forEach(btn => {
-            btn.addEventListener('click', function() {
-                selectedProductId = parseInt(this.dataset.productId);
-                document.getElementById('playerName').value = '';
-                document.getElementById('playerEmail').value = '';
-                document.getElementById('agreeCheck').checked = false;
-                document.getElementById('payButton').disabled = true;
-                document.getElementById('errorMsg').classList.remove('show');
-                document.getElementById('offerText').classList.remove('show');
-                document.getElementById('paymentModal').classList.add('active');
-            });
-        });
+  document.querySelectorAll('.product-row').forEach(row => {
+    row.addEventListener('click', () => handleBuyClick(row));
+  });
+}
 
-        // ===== ЗАКРЫТИЕ МОДАЛКИ =====
-        document.getElementById('modalClose').addEventListener('click', () => {
-            document.getElementById('paymentModal').classList.remove('active');
-        });
-        document.getElementById('paymentModal').addEventListener('click', function(e) {
-            if (e.target === this) this.classList.remove('active');
-        });
+/* ===================================================== */
+/*  ПОКУПКА                                              */
+/* ===================================================== */
+function handleBuyClick(row){
+  if(!currentUser){
+    openModal('authModal');
+    return;
+  }
+  selectedProduct = {
+    id: row.dataset.id,
+    name: row.dataset.name,
+    price: row.dataset.price
+  };
+  document.getElementById('buySub').textContent = selectedProduct.name;
+  document.getElementById('buyAmount').value = selectedProduct.price + ' ₽';
+  openModal('buyModal');
+}
 
-        // ===== ПОКАЗ ОФЕРТЫ (по клику на ссылки) =====
-        document.getElementById('showOfferLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('offerText').classList.toggle('show');
-        });
-        document.getElementById('showPersonalLink').addEventListener('click', function(e) {
-            e.preventDefault();
-            document.getElementById('offerText').classList.toggle('show');
-        });
+document.getElementById('buySubmit').addEventListener('click', async function(){
+  const btn = this;
+  const err = document.getElementById('buyError');
+  err.classList.remove('show');
+  btn.disabled = true;
+  btn.textContent = 'Обработка...';
 
-        // ===== ГАЛКА СОГЛАСИЯ =====
-        document.getElementById('agreeCheck').addEventListener('change', function() {
-            document.getElementById('payButton').disabled = !this.checked;
-        });
+  try{
+    const res = await fetch(`${BACKEND_URL}/api/create-payment`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        productId: selectedProduct.id,
+        nickname: currentUser.nick,
+        email: currentUser.email || undefined,
+        shopId: 244378
+      })
+    });
+    const data = await res.json();
+    if(data.url){
+      window.location.href = data.url;
+    } else {
+      err.textContent = data.error || 'Ошибка создания платежа';
+      err.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Перейти к оплате';
+    }
+  } catch(e){
+    err.textContent = 'Ошибка соединения с сервером';
+    err.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Перейти к оплате';
+  }
+});
 
-        // ===== КНОПКА ОПЛАТЫ =====
-        document.getElementById('payButton').addEventListener('click', function() {
-            const nickname = document.getElementById('playerName').value.trim();
-            const email = document.getElementById('playerEmail').value.trim();
-            const errorMsg = document.getElementById('errorMsg');
+/* ===================================================== */
+/*  АВТОРИЗАЦИЯ                                          */
+/* ===================================================== */
+document.getElementById('loginBtn').addEventListener('click', () => openModal('authModal'));
+document.getElementById('userChip').addEventListener('click', () => switchTab('account'));
 
-            if (!nickname) {
-                errorMsg.textContent = 'Пожалуйста, введите ваш игровой ник.';
-                errorMsg.classList.add('show');
-                return;
-            }
-            errorMsg.classList.remove('show');
-            executePayment(nickname, email);
-        });
+document.getElementById('authClose').addEventListener('click', () => closeModal('authModal'));
+document.getElementById('buyClose').addEventListener('click', () => closeModal('buyModal'));
 
-        // ===== ВЫПОЛНЕНИЕ ПЛАТЕЖА =====
-        async function executePayment(nickname, email) {
-            const payButton = document.getElementById('payButton');
-            const errorMsg = document.getElementById('errorMsg');
+document.getElementById('goRegister').addEventListener('click', () => {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('registerForm').style.display = 'block';
+  document.getElementById('authTitle').textContent = 'Регистрация';
+  document.getElementById('authSub').textContent = 'Создай аккаунт для покупок';
+});
+document.getElementById('goLogin').addEventListener('click', () => {
+  document.getElementById('registerForm').style.display = 'none';
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('authTitle').textContent = 'Вход';
+  document.getElementById('authSub').textContent = 'Войди, чтобы покупать привилегии';
+});
 
-            payButton.disabled = true;
-            payButton.textContent = 'Обработка...';
+// Вход
+document.getElementById('loginSubmit').addEventListener('click', async function(){
+  const nick = document.getElementById('loginNick').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginError');
+  err.classList.remove('show');
 
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/create-payment`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        productId: selectedProductId,
-                        nickname: nickname,
-                        email: email || undefined,
-                        shopId: SHOP_ID
-                    })
-                });
+  if(!nick || !pass){
+    err.textContent = 'Заполните все поля';
+    err.classList.add('show');
+    return;
+  }
 
-                if (!response.ok) {
-                    const text = await response.text();
-                    throw new Error(`Ошибка сервера: ${response.status} - ${text}`);
-                }
+  // Локальная проверка (пока нет реального API)
+  const stored = JSON.parse(localStorage.getItem('luar_users') || '{}');
+  const user = stored[nick.toLowerCase()];
+  if(!user || user.pass !== btoa(pass)){
+    err.textContent = 'Неверный ник или пароль';
+    err.classList.add('show');
+    return;
+  }
+  loginUser(user);
+});
 
-                const data = await response.json();
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    errorMsg.textContent = data.error || 'Ошибка создания платежа. Попробуйте позже.';
-                    errorMsg.classList.add('show');
-                    payButton.disabled = false;
-                    payButton.textContent = 'Перейти к оплате';
-                    document.getElementById('paymentModal').classList.add('active');
-                }
-            } catch (error) {
-                console.error('Ошибка:', error);
-                errorMsg.textContent = 'Ошибка соединения с сервером. Проверьте, запущен ли бэкенд.';
-                errorMsg.classList.add('show');
-                payButton.disabled = false;
-                payButton.textContent = 'Перейти к оплате';
-                document.getElementById('paymentModal').classList.add('active');
-            }
-        }
-    </script>
+// Регистрация
+document.getElementById('registerSubmit').addEventListener('click', async function(){
+  const nick = document.getElementById('regNick').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const pass2 = document.getElementById('regPass2').value;
+  const err = document.getElementById('regError');
+  const ok = document.getElementById('regSuccess');
+  err.classList.remove('show');
+  ok.classList.remove('show');
+
+  if(!nick || !email || !pass || !pass2){
+    err.textContent = 'Заполните все поля';
+    err.classList.add('show');
+    return;
+  }
+  if(nick.length < 3){
+    err.textContent = 'Ник должен быть минимум 3 символа';
+    err.classList.add('show');
+    return;
+  }
+  if(!/^[^@]+@[^@]+\.[^@]+$/.test(email)){
+    err.textContent = 'Некорректный email';
+    err.classList.add('show');
+    return;
+  }
+  if(pass.length < 6){
+    err.textContent = 'Пароль минимум 6 символов';
+    err.classList.add('show');
+    return;
+  }
+  if(pass !== pass2){
+    err.textContent = 'Пароли не совпадают';
+    err.classList.add('show');
+    return;
+  }
+
+  const stored = JSON.parse(localStorage.getItem('luar_users') || '{}');
+  if(stored[nick.toLowerCase()]){
+    err.textContent = 'Этот ник уже занят';
+    err.classList.add('show');
+    return;
+  }
+
+  const newUser = {
+    nick,
+    email,
+    pass: btoa(pass),
+    registered: new Date().toISOString(),
+    operations: []
+  };
+  stored[nick.toLowerCase()] = newUser;
+  localStorage.setItem('luar_users', JSON.stringify(stored));
+
+  ok.textContent = '✅ Аккаунт создан! Выполняем вход...';
+  ok.classList.add('show');
+  setTimeout(() => loginUser(newUser), 900);
+});
+
+function loginUser(user){
+  currentUser = user;
+  localStorage.setItem('luar_session', JSON.stringify({nick: user.nick}));
+  document.getElementById('loginBtn').style.display = 'none';
+  document.getElementById('userChip').style.display = 'flex';
+  document.getElementById('userAvatar').textContent = user.nick[0].toUpperCase();
+  document.getElementById('userName').textContent = user.nick;
+  closeModal('authModal');
+  renderAccount();
+}
+
+function logout(){
+  currentUser = null;
+  localStorage.removeItem('luar_session');
+  document.getElementById('loginBtn').style.display = 'flex';
+  document.getElementById('userChip').style.display = 'none';
+  switchTab('shop');
+}
+
+/* ===================================================== */
+/*  АККАУНТ                                              */
+/* ===================================================== */
+function renderAccount(){
+  const root = document.getElementById('accountContent');
+  if(!currentUser){
+    root.innerHTML = '<div class="account-block"><h4>Статус</h4><div class="big-value">Вы не вошли</div><div class="sub-value">Войдите, чтобы увидеть данные</div></div>';
+    return;
+  }
+  const regDate = new Date(currentUser.registered).toLocaleDateString('ru-RU', {day:'numeric',month:'long',year:'numeric'});
+  const ops = currentUser.operations && currentUser.operations.length
+    ? currentUser.operations.map(o => `<div class="op-item"><span>${o.name}</span><span class="op-sum">${o.sum} ₽</span></div>`).join('')
+    : '<div class="sub-value">Операций пока нет</div>';
+
+  root.innerHTML = `
+    <div class="account-grid">
+      <div class="account-block">
+        <h4>Профиль</h4>
+        <div class="big-value">${currentUser.nick}</div>
+        <div class="sub-value">${currentUser.email}</div>
+      </div>
+      <div class="account-block">
+        <h4>Дата регистрации</h4>
+        <div class="big-value" style="font-size:1.05rem">${regDate}</div>
+        <div class="sub-value">Добро пожаловать на LuarSMP</div>
+      </div>
+      <div class="account-block" style="grid-column:1/-1">
+        <h4>Последние операции</h4>
+        <div class="ops-list">${ops}</div>
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-right-from-bracket"></i> Выйти</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ===================================================== */
+/*  ВКЛАДКИ                                              */
+/* ===================================================== */
+function switchTab(tab){
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + tab).classList.add('active');
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+
+  const cube = document.getElementById('cube-wrap');
+  cube.classList.remove('pos-left','pos-center','pos-right');
+  if(tab === 'shop') cube.classList.add('pos-left');
+  else if(tab === 'archive') cube.classList.add('pos-center');
+  else cube.classList.add('pos-right');
+
+  if(tab === 'account') renderAccount();
+}
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+});
+
+/* ===================================================== */
+/*  МОДАЛКИ                                              */
+/* ===================================================== */
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('active'); });
+});
+
+/* ===================================================== */
+/*  ТЕМА                                                 */
+/* ===================================================== */
+const themeBtn = document.getElementById('themeBtn');
+let theme = localStorage.getItem('luar_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', theme);
+updateThemeIcon();
+themeBtn.addEventListener('click', () => {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('luar_theme', theme);
+  updateThemeIcon();
+});
+function updateThemeIcon(){
+  themeBtn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+}
+
+/* ===================================================== */
+/*  ЭФФЕКТ ЛАВЫ НА КНОПКАХ                               */
+/* ===================================================== */
+const canvas = document.getElementById('lavaCanvas');
+const ctx = canvas.getContext('2d');
+let drips = [];
+
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function randomBlob(x, y){
+  const size = Math.random() * 8 + 6;
+  const points = [];
+  const pts = 5 + Math.floor(Math.random() * 3);
+  for(let i = 0; i < pts; i++){
+    const a = (i / pts) * Math.PI * 2;
+    const r = size * (0.6 + Math.random() * 0.7);
+    points.push({x: x + Math.cos(a) * r, y: y + Math.sin(a) * r});
+  }
+  return {
+    points,
+    vx: (Math.random() - 0.5) * 1.5,
+    vy: Math.random() * 1 + 0.5,
+    life: 1,
+    decay: 0.012 + Math.random() * 0.01,
+    color: `hsl(${200 + Math.random() * 40}, 90%, ${55 + Math.random() * 15}%)`
+  };
+}
+
+function spawnDrip(x, y, amount = 3){
+  for(let i = 0; i < amount; i++){
+    setTimeout(() => drips.push(randomBlob(x, y)), i * 40);
+  }
+}
+
+function animateLava(){
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for(let i = drips.length - 1; i >= 0; i--){
+    const d = drips[i];
+    d.points.forEach(p => { p.x += d.vx; p.y += d.vy; });
+    d.vy += 0.08;
+    d.life -= d.decay;
+
+    if(d.life <= 0){
+      drips.splice(i, 1);
+      continue;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(d.points[0].x, d.points[0].y);
+    for(let j = 1; j < d.points.length; j++){
+      const prev = d.points[j - 1];
+      const cur = d.points[j];
+      ctx.quadraticCurveTo(prev.x, prev.y, (prev.x + cur.x) / 2, (prev.y + cur.y) / 2);
+    }
+    ctx.closePath();
+    ctx.globalAlpha = Math.max(0, d.life);
+    ctx.fillStyle = d.color;
+    ctx.shadowColor = d.color;
+    ctx.shadowBlur = 18;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
+  requestAnimationFrame(animateLava);
+}
+animateLava();
+
+// Привязка эффекта к кнопкам
+function attachLavaEffect(el){
+  el.addEventListener('mousemove', e => {
+    const rect = el.getBoundingClientRect();
+    // Тянемся к курсору
+    const dx = (e.clientX - (rect.left + rect.width / 2)) * 0.08;
+    const dy = (e.clientY - (rect.top + rect.height / 2)) * 0.08;
+    el.style.transform = `translate(${dx}px, ${dy}px)`;
+    // Изредка отрываем кусочек
+    if(Math.random() < 0.15){
+      spawnDrip(e.clientX, e.clientY, 1);
+    }
+  });
+  el.addEventListener('mouseleave', e => {
+    el.style.transform = '';
+    // Отрыв: спавним рой блобов на прощание
+    spawnDrip(e.clientX, e.clientY, 5);
+  });
+  el.addEventListener('click', e => {
+    spawnDrip(e.clientX, e.clientY, 8);
+  });
+}
+
+/* ===================================================== */
+/*  СТАРТ                                                */
+/* ===================================================== */
+window.addEventListener('load', () => {
+  renderProducts();
+  // Эффект на все кнопки
+  document.querySelectorAll('.p-buy,.submit-btn,.download-btn,.login-btn,.icon-btn,.logout-btn,.tab-btn').forEach(attachLavaEffect);
+
+  // Восстановление сессии
+  const sess = JSON.parse(localStorage.getItem('luar_session') || 'null');
+  if(sess){
+    const users = JSON.parse(localStorage.getItem('luar_users') || '{}');
+    const u = users[sess.nick.toLowerCase()];
+    if(u) loginUser(u);
+  }
+
+  // Начальная позиция куба
+  document.getElementById('cube-wrap').classList.add('pos-left');
+});
+</script>
 </body>
 </html>
