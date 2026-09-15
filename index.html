@@ -114,16 +114,6 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
   color:#fff;border:none;font-weight:600;cursor:pointer;font-size:.85rem;transition:all var(--tr);
   white-space:nowrap;overflow:hidden}
 .p-buy:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(74,158,255,0.4)}
-.archive-card{display:flex;gap:24px;align-items:center;padding:28px;background:var(--surface);
-  backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:var(--radius);transition:all var(--tr)}
-.archive-card:hover{border-color:var(--border-hover);background:var(--surface-hover)}
-.archive-icon{width:88px;height:88px;border-radius:20px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
-  display:grid;place-items:center;font-size:2.4rem;color:#fff;box-shadow:0 12px 32px rgba(74,158,255,0.35);flex-shrink:0}
-.archive-info{flex:1}
-.archive-info h3{font-size:1.25rem;font-weight:700;margin-bottom:6px}
-.archive-info p{color:var(--text-2);font-size:.9rem;line-height:1.5;margin-bottom:6px}
-.archive-info .ver{font-size:.8rem;color:var(--text-3)}
-.archive-info .ver.loading{color:var(--accent-3)}
 .download-btn{padding:14px 32px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
   color:#fff;border:none;font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;gap:10px;
   transition:all var(--tr);box-shadow:0 10px 30px rgba(74,158,255,0.35);text-decoration:none;overflow:hidden}
@@ -193,7 +183,6 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
 .success-msg.show{display:block}
 .lava-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999}
 
-/* ===== БЛОК СОГЛАСИЯ ===== */
 .agree-block{
   display:flex;align-items:flex-start;gap:10px;
   margin:18px 0 12px;padding:14px 16px;
@@ -240,12 +229,120 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
 .offer-text-box::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px}
 .offer-text-box::-webkit-scrollbar-thumb:hover{background:var(--accent-2)}
 
+/* ===== РЕЛИЗЫ ===== */
+.releases-list{display:flex;flex-direction:column;gap:16px}
+
+.release-card{
+  padding:24px 26px;
+  background:var(--surface);
+  backdrop-filter:blur(18px);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  transition:all var(--tr);
+  position:relative;
+  overflow:hidden;
+  animation:catIn .5s cubic-bezier(0.22,1,0.36,1) both;
+}
+.release-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  opacity:0;transition:opacity var(--tr);
+}
+.release-card:hover{
+  border-color:var(--border-hover);
+  background:var(--surface-hover);
+  box-shadow:0 12px 40px rgba(74,158,255,0.15);
+}
+.release-card:hover::before{opacity:1}
+.release-card.prerelease::before{
+  background:linear-gradient(180deg,#ffb347,#ff6b6b);
+  opacity:1;
+}
+.release-card.latest::before{
+  background:linear-gradient(180deg,#4ade80,#00d4ff);
+  opacity:1;
+}
+
+.release-header{display:flex;gap:16px;align-items:center;margin-bottom:14px}
+.release-icon{
+  width:52px;height:52px;border-radius:14px;
+  display:grid;place-items:center;font-size:1.3rem;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(74,158,255,0.15),rgba(124,92,255,0.1));
+  border:1px solid var(--border);color:var(--accent-3);
+}
+.release-card.prerelease .release-icon{
+  background:linear-gradient(135deg,rgba(255,179,71,0.15),rgba(255,107,107,0.1));
+  color:#ffb347;
+}
+.release-card.latest .release-icon{
+  background:linear-gradient(135deg,rgba(74,222,128,0.15),rgba(0,212,255,0.1));
+  color:#4ade80;
+}
+.release-meta{flex:1;min-width:0}
+.release-title-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.release-title-row h3{
+  font-size:1.05rem;font-weight:700;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.release-sub{font-size:.82rem;color:var(--text-3)}
+
+.badge-pre,.badge-stable,.badge-latest{
+  font-size:.7rem;font-weight:700;letter-spacing:.6px;
+  padding:3px 10px;border-radius:20px;text-transform:uppercase;
+}
+.badge-pre{
+  background:rgba(255,179,71,0.15);
+  border:1px solid rgba(255,179,71,0.4);
+  color:#ffb347;
+}
+.badge-stable{
+  background:rgba(74,222,128,0.12);
+  border:1px solid rgba(74,222,128,0.35);
+  color:#4ade80;
+}
+.badge-latest{
+  background:linear-gradient(135deg,rgba(74,222,128,0.2),rgba(0,212,255,0.15));
+  border:1px solid rgba(74,222,128,0.5);
+  color:#4ade80;
+}
+
+.release-body{
+  font-size:.88rem;line-height:1.6;color:var(--text-2);
+  margin-bottom:16px;word-wrap:break-word;
+  white-space:pre-wrap;
+}
+.release-body em{color:var(--text-3);font-style:italic}
+.release-body a{color:var(--accent);text-decoration:underline}
+
+.release-assets{
+  display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;
+}
+.asset-item{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-radius:10px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  font-size:.82rem;color:var(--text-2);
+  text-decoration:none;transition:all var(--tr);
+}
+.asset-item:hover{border-color:var(--border-hover);color:var(--text);transform:translateY(-2px)}
+.asset-item i{color:var(--accent-3)}
+.asset-item .size{color:var(--text-3);font-size:.75rem}
+
+.release-footer{display:flex;justify-content:flex-end;gap:12px}
+
+.release-empty{
+  padding:40px 24px;text-align:center;
+  background:var(--surface);border:1px dashed var(--border);
+  border-radius:var(--radius);color:var(--text-2);font-size:.95rem;
+}
+.release-empty i{color:var(--accent-3);margin-right:8px}
+
 @media(max-width:820px){
   .product-row{grid-template-columns:48px 1fr auto;gap:12px;padding:14px}
   .p-buy{grid-column:1/-1;width:100%;text-align:center}
   .p-icon{width:48px;height:48px;font-size:1.2rem}
   .account-grid{grid-template-columns:1fr}
-  .archive-card{flex-direction:column;text-align:center}
   .tab-dock{left:12px;right:12px;transform:none}
   .tab-dock-inner{max-width:100%}
   .tab-dock:hover .tab-dock-inner{max-width:100%}
@@ -257,6 +354,9 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
   .f1{transform:translateZ(100px)}.f2{transform:rotateY(180deg) translateZ(100px)}
   .f3{transform:rotateY(90deg) translateZ(100px)}.f4{transform:rotateY(-90deg) translateZ(100px)}
   .f5{transform:rotateX(90deg) translateZ(100px)}.f6{transform:rotateX(-90deg) translateZ(100px)}
+  .release-header{flex-direction:column;align-items:flex-start;gap:10px}
+  .release-footer{justify-content:stretch}
+  .release-footer .download-btn{width:100%;justify-content:center}
 }
 </style>
 </head>
@@ -298,17 +398,9 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
 
   <section class="tab-panel" id="panel-archive">
     <h1 class="panel-title">Архив</h1>
-    <p class="panel-sub">Файлы для скачивания</p>
-    <div class="archive-card">
-      <div class="archive-icon"><i class="fas fa-download"></i></div>
-      <div class="archive-info">
-        <h3>LuarSMP Launcher</h3>
-        <p>Официальный лаунчер LuarSMP. Автоматическая установка, обновления, оптимизация и быстрый вход на сервер.</p>
-        <div class="ver loading" id="launcherMeta"><i class="fas fa-spinner fa-spin"></i> Загрузка информации...</div>
-      </div>
-      <a class="download-btn disabled" id="launcherDownload" href="#" download>
-        <i class="fas fa-download"></i> Скачать
-      </a>
+    <p class="panel-sub">Все версии LuarSMP Launcher</p>
+    <div class="releases-list" id="releasesList">
+      <div class="release-empty"><i class="fas fa-spinner fa-spin"></i> Загрузка релизов...</div>
     </div>
   </section>
 
@@ -354,7 +446,7 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
   </div>
 </div>
 
-<!-- МОДАЛКА ПОКУПКИ с офертой -->
+<!-- МОДАЛКА ПОКУПКИ -->
 <div class="modal-overlay" id="buyModal">
   <div class="modal" style="max-width:720px">
     <button class="modal-close" id="buyClose">&times;</button>
@@ -383,8 +475,7 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
       <div class="offer-section">
         <h3>ПУБЛИЧНАЯ ОФЕРТА</h3>
         <p>о предоставлении доступа к игровому серверу и продаже внутриигровых предметов (услуг)</p>
-        <p><strong>г. Ставрополь</strong><br>
-        <strong>Дата публикации:</strong> 15 сентября 2026 г.</p>
+        <p><strong>Дата публикации:</strong> 15 сентября 2026 г.</p>
         <p>Настоящий документ является официальным предложением (публичной офертой) <strong>самозанятого Чеснокова Степана Евгеньевича</strong>, ИНН 263520600902 (далее – «Исполнитель»), адресованным неограниченному кругу лиц (далее – «Заказчик»), о заключении договора на предоставление доступа к игровому серверу LuarSMP и продаже внутриигровых предметов (далее – «Услуги») на условиях, изложенных ниже.</p>
       </div>
 
@@ -473,7 +564,7 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
       <div class="offer-section">
         <h4>9. Применимое право и разрешение споров</h4>
         <p>9.1. Настоящая Оферта регулируется законодательством Российской Федерации.</p>
-        <p>9.2. Все споры решаются путём переговоров. При недостижении согласия спор передаётся на рассмотрение в суд по месту нахождения Исполнителя.</p>
+        <p>9.2. Все споры решаются путём переговоров. При недостижении согласия спор передаётся на рассмотрение в суд в соответствии с законодательством РФ.</p>
       </div>
 
       <div class="offer-section">
@@ -581,42 +672,106 @@ const CATEGORIES = [
 let currentUser = null;
 let selectedProduct = null;
 
-/* ============ ЛАУНЧЕР С GITHUB ============ */
-async function loadLauncherInfo(){
-  const meta = document.getElementById('launcherMeta');
-  const btn = document.getElementById('launcherDownload');
+/* ============ ЗАГРУЗКА ВСЕХ РЕЛИЗОВ С GITHUB ============ */
+async function loadReleases(){
+  const root = document.getElementById('releasesList');
   try{
-    const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases/latest`);
-    if(!res.ok) throw new Error('Release не найден');
-    const data = await res.json();
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases?per_page=30`);
+    if(!res.ok) throw new Error('Не удалось получить релизы');
+    const releases = await res.json();
 
-    const version = data.tag_name || 'v?';
-    const publishedAt = new Date(data.published_at).toLocaleDateString('ru-RU', {
-      day:'numeric', month:'long', year:'numeric'
-    });
-
-    const asset = (data.assets || []).find(a => a.name.toLowerCase().endsWith('.exe'));
-    if(!asset){
-      meta.classList.remove('loading');
-      meta.textContent = 'Файл лаунчера не найден в релизе';
+    if(!releases.length){
+      root.innerHTML = `<div class="release-empty"><i class="fas fa-box-open"></i> Релизов пока нет</div>`;
       return;
     }
-    const sizeMb = (asset.size / 1024 / 1024).toFixed(1);
-    meta.classList.remove('loading');
-    meta.textContent = `${version} · ${sizeMb} МБ · ${publishedAt}`;
 
-    btn.href = asset.browser_download_url;
-    btn.classList.remove('disabled');
+    const latestStable = releases.find(r => !r.prerelease);
+
+    root.innerHTML = releases.map((rel, index) => {
+      const isPre = rel.prerelease;
+      const isLatest = latestStable && rel.id === latestStable.id;
+
+      const publishedAt = new Date(rel.published_at).toLocaleDateString('ru-RU', {
+        day:'numeric', month:'long', year:'numeric'
+      });
+
+      const title = rel.name || rel.tag_name || 'Без названия';
+
+      const body = rel.body && rel.body.trim()
+        ? escapeHtml(rel.body.trim())
+        : '<em>Описание отсутствует</em>';
+
+      const assets = (rel.assets || []);
+      const exeAsset = assets.find(a => a.name.toLowerCase().endsWith('.exe'));
+
+      const assetsHtml = assets.length
+        ? `<div class="release-assets">${assets.map(a => {
+            const mb = (a.size / 1024 / 1024).toFixed(1);
+            return `<a class="asset-item" href="${a.browser_download_url}" download>
+              <i class="fas fa-file-arrow-down"></i>
+              <span>${escapeHtml(a.name)}</span>
+              <span class="size">${mb} МБ</span>
+            </a>`;
+          }).join('')}</div>`
+        : '';
+
+      const badge = isLatest
+        ? `<span class="badge-latest">Последний</span>`
+        : isPre
+          ? `<span class="badge-pre">Pre-release</span>`
+          : `<span class="badge-stable">Stable</span>`;
+
+      const icon = isLatest
+        ? '<i class="fas fa-star"></i>'
+        : isPre
+          ? '<i class="fas fa-flask"></i>'
+          : '<i class="fas fa-cube"></i>';
+
+      const cardClass = isLatest ? 'latest' : isPre ? 'prerelease' : '';
+
+      return `
+        <div class="release-card ${cardClass}" style="animation-delay:${index * 0.05}s">
+          <div class="release-header">
+            <div class="release-icon">${icon}</div>
+            <div class="release-meta">
+              <div class="release-title-row">
+                <h3>${escapeHtml(title)}</h3>
+                ${badge}
+              </div>
+              <div class="release-sub">
+                <i class="fas fa-tag"></i> ${escapeHtml(rel.tag_name)}
+                &nbsp;·&nbsp;
+                <i class="fas fa-calendar"></i> ${publishedAt}
+              </div>
+            </div>
+          </div>
+
+          <div class="release-body">${body}</div>
+
+          ${assetsHtml}
+        </div>
+      `;
+    }).join('');
+
+    // Привязываем эффект лавы к кнопкам ассетов
+    document.querySelectorAll('.release-assets .asset-item').forEach(attachLavaEffect);
+
   } catch(e){
-    console.error('Ошибка загрузки данных лаунчера:', e);
-    meta.classList.remove('loading');
-    meta.textContent = 'Не удалось загрузить информацию о лаунчере';
-    btn.href = `https://github.com/${GITHUB_USER}/${GITHUB_REPO}/releases/download/v0.1/LuarSMP-Setup-0.1.exe`;
-    btn.classList.remove('disabled');
+    console.error('Ошибка загрузки релизов:', e);
+    root.innerHTML = `<div class="release-empty"><i class="fas fa-triangle-exclamation"></i> Не удалось загрузить список релизов. Попробуйте позже.</div>`;
   }
 }
 
-/* ============ РЕНДЕР ============ */
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+/* ============ РЕНДЕР МАГАЗИНА ============ */
 function renderShop(){
   const root = document.getElementById('shopCategories');
   root.innerHTML = CATEGORIES.map(cat => `
@@ -657,7 +812,6 @@ function handleBuyClick(row){
   openModal('buyModal');
 }
 
-/* ============ ОФЕРТА ============ */
 document.getElementById('showOfferLink').addEventListener('click', function(e){
   e.preventDefault();
   document.getElementById('offerTextBox').classList.toggle('show');
@@ -672,7 +826,6 @@ document.getElementById('buyAgree').addEventListener('change', function(){
   document.getElementById('buySubmit').disabled = !this.checked;
 });
 
-/* ============ ОПЛАТА ============ */
 document.getElementById('buySubmit').addEventListener('click', async function(){
   const btn = this, err = document.getElementById('buyError');
   err.classList.remove('show');
@@ -721,7 +874,6 @@ document.getElementById('buySubmit').addEventListener('click', async function(){
   }
 });
 
-/* ============ АВТОРИЗАЦИЯ ============ */
 document.getElementById('loginBtn').addEventListener('click', () => openModal('authModal'));
 document.getElementById('userChip').addEventListener('click', () => switchTab('account'));
 document.getElementById('authClose').addEventListener('click', () => closeModal('authModal'));
@@ -864,7 +1016,6 @@ function openModal(id){ document.getElementById(id).classList.add('active'); }
 function closeModal(id){ document.getElementById(id).classList.remove('active'); }
 document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target === m) m.classList.remove('active'); }));
 
-/* ============ ТЕМА ============ */
 const themeBtn = document.getElementById('themeBtn');
 let theme = localStorage.getItem('luar_theme') || 'dark';
 document.documentElement.setAttribute('data-theme', theme);
@@ -877,7 +1028,6 @@ themeBtn.addEventListener('click', () => {
 });
 function updateThemeIcon(){ themeBtn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>'; }
 
-/* ============ ЭФФЕКТ ЛАВЫ ============ */
 const canvas = document.getElementById('lavaCanvas');
 const ctx = canvas.getContext('2d');
 let drips = [];
@@ -931,10 +1081,9 @@ function attachLavaEffect(el){
   el.addEventListener('click', e => { spawnDrip(e.clientX, e.clientY, 8); });
 }
 
-/* ============ СТАРТ ============ */
 window.addEventListener('load', async () => {
   renderShop();
-  loadLauncherInfo();
+  loadReleases();
   document.querySelectorAll('.submit-btn,.download-btn,.login-btn,.icon-btn,.logout-btn,.tab-btn').forEach(attachLavaEffect);
 
   const sess = JSON.parse(localStorage.getItem('luar_session') || 'null');
