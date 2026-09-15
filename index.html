@@ -180,8 +180,8 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
 .submit-btn{width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
   color:#fff;border:none;font-weight:700;font-size:.98rem;cursor:pointer;transition:all var(--tr);margin-top:8px;
   box-shadow:0 10px 28px rgba(74,158,255,0.35);overflow:hidden}
-.submit-btn:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(74,158,255,0.55)}
-.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 36px rgba(74,158,255,0.55)}
+.submit-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
 .switch-link{text-align:center;margin-top:18px;font-size:.86rem;color:var(--text-2)}
 .switch-link a{color:var(--accent);cursor:pointer;text-decoration:none;font-weight:600}
 .switch-link a:hover{text-decoration:underline}
@@ -192,6 +192,54 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
   background:rgba(74,222,128,0.1);border-radius:10px;border-left:3px solid #4ade80}
 .success-msg.show{display:block}
 .lava-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999}
+
+/* ===== БЛОК СОГЛАСИЯ ===== */
+.agree-block{
+  display:flex;align-items:flex-start;gap:10px;
+  margin:18px 0 12px;padding:14px 16px;
+  background:rgba(74,158,255,0.06);
+  border:1px solid var(--border);border-radius:12px;
+  font-size:.86rem;color:var(--text-2);line-height:1.5;
+}
+.agree-block input[type="checkbox"]{
+  margin-top:2px;width:18px;height:18px;flex-shrink:0;
+  accent-color:var(--accent);cursor:pointer;
+}
+.agree-block label{cursor:pointer}
+.agree-block a{color:var(--accent);text-decoration:underline;cursor:pointer;font-weight:600}
+.agree-block a:hover{color:var(--accent-3)}
+
+.offer-text-box{
+  display:none;
+  max-height:380px;overflow-y:auto;
+  margin:12px 0 16px;
+  padding:20px 22px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:12px;
+  font-size:.84rem;
+  color:var(--text-2);
+  line-height:1.65;
+}
+[data-theme="light"] .offer-text-box{background:rgba(0,0,0,0.02)}
+.offer-text-box.show{display:block;animation:panelIn .35s ease}
+.offer-text-box h3{
+  color:var(--accent-3);font-size:1rem;font-weight:800;
+  margin-bottom:10px;letter-spacing:.3px;
+}
+.offer-text-box h4{
+  color:var(--text);font-size:.9rem;font-weight:700;
+  margin:14px 0 8px;
+}
+.offer-text-box p{margin-bottom:8px}
+.offer-text-box strong{color:var(--text)}
+.offer-section{margin-bottom:14px}
+.offer-text-box::-webkit-scrollbar{width:8px}
+.offer-text-box::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:4px}
+.offer-text-box::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px}
+.offer-text-box::-webkit-scrollbar-thumb:hover{background:var(--accent-2)}
+
 @media(max-width:820px){
   .product-row{grid-template-columns:48px 1fr auto;gap:12px;padding:14px}
   .p-buy{grid-column:1/-1;width:100%;text-align:center}
@@ -280,6 +328,7 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
   </div>
 </div>
 
+<!-- МОДАЛКА АВТОРИЗАЦИИ -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
     <button class="modal-close" id="authClose">&times;</button>
@@ -305,25 +354,185 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
   </div>
 </div>
 
+<!-- МОДАЛКА ПОКУПКИ с офертой -->
 <div class="modal-overlay" id="buyModal">
-  <div class="modal">
+  <div class="modal" style="max-width:720px">
     <button class="modal-close" id="buyClose">&times;</button>
     <h2>Подтверждение покупки</h2>
     <p class="sub" id="buySub">—</p>
-    <div class="field"><label>Сумма к оплате</label><input type="text" id="buyAmount" readonly></div>
+
+    <div class="field">
+      <label>Игровой ник</label>
+      <input type="text" id="buyNick" readonly>
+    </div>
+
+    <div class="field">
+      <label>Сумма к оплате</label>
+      <input type="text" id="buyAmount" readonly>
+    </div>
+
+    <div class="agree-block">
+      <input type="checkbox" id="buyAgree">
+      <label for="buyAgree">
+        Я принимаю <a id="showOfferLink" href="#">условия оферты</a> и даю
+        <a id="showPersonalLink" href="#">согласие на обработку персональных данных</a>.
+      </label>
+    </div>
+
+    <div id="offerTextBox" class="offer-text-box">
+      <div class="offer-section">
+        <h3>ПУБЛИЧНАЯ ОФЕРТА</h3>
+        <p>о предоставлении доступа к игровому серверу и продаже внутриигровых предметов (услуг)</p>
+        <p><strong>г. Ставрополь</strong><br>
+        <strong>Дата публикации:</strong> 15 сентября 2026 г.</p>
+        <p>Настоящий документ является официальным предложением (публичной офертой) <strong>самозанятого Чеснокова Степана Евгеньевича</strong>, ИНН 263520600902 (далее – «Исполнитель»), адресованным неограниченному кругу лиц (далее – «Заказчик»), о заключении договора на предоставление доступа к игровому серверу LuarSMP и продаже внутриигровых предметов (далее – «Услуги») на условиях, изложенных ниже.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>1. Термины и определения</h4>
+        <p>1.1. <strong>Сайт</strong> – интернет-страница, расположенная по адресу https://luarsmp.ru, через которую Заказчик может ознакомиться с Услугами и произвести их оплату.</p>
+        <p>1.2. <strong>Сервер</strong> – игровой сервер LuarSMP, доступный по адресу play.luarsmp.ru:25565, на котором Исполнитель предоставляет доступ к игровому процессу.</p>
+        <p>1.3. <strong>Товар</strong> – внутриигровая привилегия, предмет, валюта или иное игровое преимущество, перечисленное на Сайте и доступное для приобретения.</p>
+        <p>1.4. <strong>Акцепт</strong> – полное и безоговорочное принятие условий настоящей Оферты путём оплаты Товара.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>2. Предмет договора</h4>
+        <p>2.1. Исполнитель обязуется предоставить Заказчику доступ к Серверу и/или передать Товар (внутриигровые предметы, привилегии, валюту) в соответствии с выбранным Заказчиком пакетом, а Заказчик обязуется оплатить Услуги в порядке и на условиях, предусмотренных настоящей Офертой.</p>
+        <p>2.2. Перечень и стоимость Товаров размещены на Сайте и являются неотъемлемой частью настоящей Оферты.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>3. Порядок оказания Услуг</h4>
+        <p>3.1. Для получения Услуг Заказчик обязуется:</p>
+        <p>— ознакомиться с условиями настоящей Оферты;<br>
+        — выбрать Товар на Сайте и указать свой игровой никнейм (Nickname), используемый на Сервере;<br>
+        — оплатить выбранный Товар через платёжную систему, предоставленную на Сайте;<br>
+        — после оплаты Исполнитель в автоматическом режиме (через плагин или RCON) передаёт Заказчику Товар на Сервере.</p>
+        <p>3.2. Исполнитель не несёт ответственности за ошибки в указании никнейма Заказчиком. В случае ошибочного указания никнейма Товар не может быть передан другому игроку или возвращён.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>4. Стоимость Услуг и порядок оплаты</h4>
+        <p>4.1. Стоимость каждого Товара указана на Сайте в рублях Российской Федерации.</p>
+        <p>4.2. Оплата производится через платёжную систему, доступную на Сайте (TradeMC). Заказчик оплачивает полную стоимость Товара без дополнительных комиссий, если иное не указано на странице оплаты.</p>
+        <p>4.3. Моментом оплаты считается поступление денежных средств на счёт Исполнителя в полном объёме.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>5. Права и обязанности сторон</h4>
+        <p>5.1. <strong>Исполнитель обязуется:</strong></p>
+        <p>— предоставить доступ к Серверу и/или передать Товар в течение 5 минут после подтверждения оплаты;<br>
+        — обеспечить работоспособность Сервера и Сайта в пределах своих технических возможностей;<br>
+        — не передавать персональные данные Заказчика третьим лицам, за исключением случаев, предусмотренных законодательством РФ.</p>
+        <p>5.2. <strong>Заказчик обязуется:</strong></p>
+        <p>— соблюдать правила игрового сервера LuarSMP;<br>
+        — не использовать Сервер и его ресурсы для противоправных действий, распространения вирусов, оскорблений, спама, мошенничества;<br>
+        — не нарушать авторские и смежные права на игровой контент;<br>
+        — не пытаться взломать, модифицировать или иным образом нарушать работу Сервера и Сайта.</p>
+        <p>5.3. <strong>Исполнитель имеет право:</strong></p>
+        <p>— в одностороннем порядке изменять условия настоящей Оферты с предварительным уведомлением на Сайте не менее чем за 3 дня до вступления изменений в силу;<br>
+        — приостановить или прекратить доступ Заказчика к Серверу в случае нарушения им правил сервера или условий Оферты без возврата оплаты;<br>
+        — отказать в предоставлении Услуг, если Заказчик не достиг возраста 14 лет или не имеет согласия родителей на совершение платежей.</p>
+        <p>5.4. <strong>Заказчик имеет право:</strong></p>
+        <p>— получить Товар в полном объёме в соответствии с условиями оплаты;<br>
+        — отказаться от дальнейшего использования Услуг в любое время, однако оплаченные Товары возврату не подлежат (см. п. 6).</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>6. Возврат денежных средств</h4>
+        <p>6.1. Услуги, предоставляемые Исполнителем, являются информационно-развлекательными и не подлежат возврату в соответствии с Постановлением Правительства РФ № 2463 от 31.12.2020 (перечень непродовольственных товаров надлежащего качества, не подлежащих возврату и обмену).</p>
+        <p>6.2. Возврат денежных средств возможен <strong>ТОЛЬКО</strong> в следующих исключительных случаях:</p>
+        <p>— услуга не была оказана по вине Исполнителя (например, Товар не был выдан в течение 24 часов после подтверждения оплаты);<br>
+        — ошибка в списании денежных средств (удвоение оплаты и т.п.).</p>
+        <p>6.3. Для инициирования возврата Заказчик обязан направить письменное заявление на email Исполнителя: <strong>stepan.3mail@mail.ru</strong> с указанием:</p>
+        <p>— никнейма на Сервере;<br>
+        — даты и суммы платежа;<br>
+        — номера транзакции (чек);<br>
+        — причины возврата.</p>
+        <p>6.4. Исполнитель рассматривает заявление в течение 5 рабочих дней и принимает решение. В случае положительного решения возврат осуществляется тем же способом, которым был произведён платёж, в течение 10 рабочих дней.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>7. Ответственность сторон</h4>
+        <p>7.1. Исполнитель <strong>не несёт ответственности</strong> за:</p>
+        <p>— утерю, кражу или порчу внутриигровых предметов по вине самого Заказчика (передача пароля, взлом аккаунта, нарушение правил сервера);<br>
+        — перерывы в работе Сервера, вызванные техническими причинами (обновления, DDoS-атаки, сбои оборудования), если длительность перерыва не превышает 24 часов в месяц;<br>
+        — действия третьих лиц, направленные на нарушение работы Сервера или Сайта;<br>
+        — любые прямые или косвенные убытки Заказчика, связанные с использованием Сервера (включая упущенную выгоду).</p>
+        <p>7.2. Заказчик несёт полную ответственность за сохранность своего игрового аккаунта и пароля. Передача доступа к аккаунту третьим лицам осуществляется на свой страх и риск.</p>
+        <p>7.3. За нарушение правил сервера или условий Оферты Исполнитель имеет право ограничить доступ Заказчика к Серверу без возврата оплаты.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>8. Срок действия оферты и порядок изменения</h4>
+        <p>8.1. Настоящая Оферта вступает в силу с момента её публикации на Сайте и действует бессрочно.</p>
+        <p>8.2. Исполнитель оставляет за собой право вносить изменения в условия Оферты. Новая редакция Оферты вступает в силу с момента её публикации на Сайте.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>9. Применимое право и разрешение споров</h4>
+        <p>9.1. Настоящая Оферта регулируется законодательством Российской Федерации.</p>
+        <p>9.2. Все споры решаются путём переговоров. При недостижении согласия спор передаётся на рассмотрение в суд по месту нахождения Исполнителя.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>10. Реквизиты Исполнителя</h4>
+        <p><strong>Исполнитель:</strong> Чесноков Степан Евгеньевич (самозанятый)<br>
+        <strong>ИНН:</strong> 263520600902<br>
+        <strong>Электронная почта:</strong> stepan.3mail@mail.ru</p>
+      </div>
+
+      <div class="offer-section" style="border-top:2px solid var(--accent);margin-top:20px;padding-top:20px">
+        <h3>СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ</h3>
+        <p>Я, действуя свободно, своей волей и в своём интересе, даю своё согласие <strong>самозанятому Чеснокову Степану Евгеньевичу</strong> (ИНН 263520600902) (далее – «Оператор») на обработку моих персональных данных, предоставленных мной при оплате Услуг на сайте <strong>https://luarsmp.ru</strong>.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>1. Перечень персональных данных</h4>
+        <p>1.1. Игровой никнейм (Nickname), используемый на сервере LuarSMP.</p>
+        <p>1.2. IP-адрес, с которого осуществляется подключение к Серверу и Сайту.</p>
+        <p>1.3. Адрес электронной почты (e-mail) — при его указании Заказчиком.</p>
+        <p>1.4. Сведения о платеже (сумма, дата, номер транзакции).</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>2. Цели обработки персональных данных</h4>
+        <p>2.1. Оказание информационно-развлекательных услуг (выдача внутриигровых привилегий и предметов).</p>
+        <p>2.2. Идентификация Заказчика как игрока на Сервере LuarSMP.</p>
+        <p>2.3. Ведение статистики посещений и улучшение работы Сайта и Сервера.</p>
+        <p>2.4. Направление чеков и уведомлений об оплате (при указании e-mail).</p>
+        <p>2.5. Разрешение споров и претензий, связанных с оказанием Услуг.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>3. Перечень действий с персональными данными</h4>
+        <p>Согласие даётся на сбор, запись, систематизацию, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, обезличивание, блокирование, удаление, уничтожение моих персональных данных.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>4. Срок действия согласия</h4>
+        <p>Настоящее согласие действует бессрочно с момента его акцепта (постановки галочки при оформлении заказа) и до момента его отзыва мной в письменной форме.</p>
+      </div>
+
+      <div class="offer-section">
+        <h4>5. Отзыв согласия</h4>
+        <p>Я осознаю, что могу отозвать своё согласие в любое время путём отправки письменного уведомления на электронный адрес Оператора: <strong>stepan.3mail@mail.ru</strong>. В случае отзыва согласия Оператор обязан прекратить обработку моих персональных данных и уничтожить их в течение 30 дней, если иное не предусмотрено законодательством РФ.</p>
+      </div>
+    </div>
+
     <div class="error-msg" id="buyError"></div>
-    <button class="submit-btn" id="buySubmit">Перейти к оплате</button>
+
+    <button class="submit-btn" id="buySubmit" disabled>Перейти к оплате</button>
   </div>
 </div>
 
 <script>
 const BACKEND_URL = 'https://api.luarsmp.ru:8443';
 
-/* ============ КОНФИГ GITHUB ============ */
 const GITHUB_USER = 'LUARIX1';
 const GITHUB_REPO = 'LUARSMP';
 
-/* ============ КАТЕГОРИИ И ТОВАРЫ ============ */
 const CATEGORIES = [
   {
     id:'privileges', name:'Привилегии', icon:'fa-crown',
@@ -376,7 +585,6 @@ let selectedProduct = null;
 async function loadLauncherInfo(){
   const meta = document.getElementById('launcherMeta');
   const btn = document.getElementById('launcherDownload');
-
   try{
     const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases/latest`);
     if(!res.ok) throw new Error('Release не найден');
@@ -387,14 +595,12 @@ async function loadLauncherInfo(){
       day:'numeric', month:'long', year:'numeric'
     });
 
-    // Ищем .exe в ассетах
     const asset = (data.assets || []).find(a => a.name.toLowerCase().endsWith('.exe'));
     if(!asset){
       meta.classList.remove('loading');
       meta.textContent = 'Файл лаунчера не найден в релизе';
       return;
     }
-
     const sizeMb = (asset.size / 1024 / 1024).toFixed(1);
     meta.classList.remove('loading');
     meta.textContent = `${version} · ${sizeMb} МБ · ${publishedAt}`;
@@ -405,13 +611,12 @@ async function loadLauncherInfo(){
     console.error('Ошибка загрузки данных лаунчера:', e);
     meta.classList.remove('loading');
     meta.textContent = 'Не удалось загрузить информацию о лаунчере';
-    // Fallback — прямая ссылка на v0.1
     btn.href = `https://github.com/${GITHUB_USER}/${GITHUB_REPO}/releases/download/v0.1/LuarSMP-Setup-0.1.exe`;
     btn.classList.remove('disabled');
   }
 }
 
-/* ============ РЕНДЕР КАТЕГОРИЙ ============ */
+/* ============ РЕНДЕР ============ */
 function renderShop(){
   const root = document.getElementById('shopCategories');
   root.innerHTML = CATEGORIES.map(cat => `
@@ -444,12 +649,40 @@ function handleBuyClick(row){
   selectedProduct = {id: row.dataset.id, name: row.dataset.name, price: row.dataset.price};
   document.getElementById('buySub').textContent = selectedProduct.name;
   document.getElementById('buyAmount').value = selectedProduct.price + ' ₽';
+  document.getElementById('buyNick').value = currentUser.nick;
+  document.getElementById('buyAgree').checked = false;
+  document.getElementById('buySubmit').disabled = true;
+  document.getElementById('offerTextBox').classList.remove('show');
+  document.getElementById('buyError').classList.remove('show');
   openModal('buyModal');
 }
 
+/* ============ ОФЕРТА ============ */
+document.getElementById('showOfferLink').addEventListener('click', function(e){
+  e.preventDefault();
+  document.getElementById('offerTextBox').classList.toggle('show');
+});
+document.getElementById('showPersonalLink').addEventListener('click', function(e){
+  e.preventDefault();
+  const box = document.getElementById('offerTextBox');
+  box.classList.add('show');
+  setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
+});
+document.getElementById('buyAgree').addEventListener('change', function(){
+  document.getElementById('buySubmit').disabled = !this.checked;
+});
+
+/* ============ ОПЛАТА ============ */
 document.getElementById('buySubmit').addEventListener('click', async function(){
   const btn = this, err = document.getElementById('buyError');
   err.classList.remove('show');
+
+  if(!document.getElementById('buyAgree').checked){
+    err.textContent = 'Необходимо принять условия оферты и дать согласие на обработку персональных данных';
+    err.classList.add('show');
+    return;
+  }
+
   btn.disabled = true; btn.textContent = 'Обработка...';
   try{
     const res = await fetch(`${BACKEND_URL}/api/create-payment`, {
