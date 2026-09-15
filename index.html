@@ -123,10 +123,12 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
 .archive-info h3{font-size:1.25rem;font-weight:700;margin-bottom:6px}
 .archive-info p{color:var(--text-2);font-size:.9rem;line-height:1.5;margin-bottom:6px}
 .archive-info .ver{font-size:.8rem;color:var(--text-3)}
+.archive-info .ver.loading{color:var(--accent-3)}
 .download-btn{padding:14px 32px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
   color:#fff;border:none;font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;gap:10px;
   transition:all var(--tr);box-shadow:0 10px 30px rgba(74,158,255,0.35);text-decoration:none;overflow:hidden}
 .download-btn:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(74,158,255,0.55)}
+.download-btn.disabled{opacity:.5;pointer-events:none}
 .account-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 .account-block{padding:24px;background:var(--surface);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:var(--radius)}
 .account-block h4{font-size:.8rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-2);margin-bottom:14px;font-weight:600}
@@ -252,11 +254,11 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
     <div class="archive-card">
       <div class="archive-icon"><i class="fas fa-download"></i></div>
       <div class="archive-info">
-        <h3>LuarLauncher</h3>
+        <h3>LuarSMP Launcher</h3>
         <p>Официальный лаунчер LuarSMP. Автоматическая установка, обновления, оптимизация и быстрый вход на сервер.</p>
-        <div class="ver">v0.1 · 128 МБ · Windows / Linux / macOS</div>
+        <div class="ver loading" id="launcherMeta"><i class="fas fa-spinner fa-spin"></i> Загрузка информации...</div>
       </div>
-      <a class="download-btn" href="https://archive.luarsmp.ru/LuarLauncher-v0.1.exe" download>
+      <a class="download-btn disabled" id="launcherDownload" href="#" download>
         <i class="fas fa-download"></i> Скачать
       </a>
     </div>
@@ -317,6 +319,10 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
 <script>
 const BACKEND_URL = 'https://api.luarsmp.ru:8443';
 
+/* ============ КОНФИГ GITHUB ============ */
+const GITHUB_USER = 'LUARIX1';
+const GITHUB_REPO = 'LUARSMP';
+
 /* ============ КАТЕГОРИИ И ТОВАРЫ ============ */
 const CATEGORIES = [
   {
@@ -351,7 +357,7 @@ const CATEGORIES = [
   {
     id:'resources', name:'Ресурсы', icon:'fa-cubes',
     items:[
-      {id:990020, name:'Набор ресурсов',   desc:'48 алмазов, 24 незерита, 12 изумрудов', icon:'fa-gem', price:249}
+      {id:990020, name:'Набор ресурсов', desc:'48 алмазов, 24 незерита, 12 изумрудов', icon:'fa-gem', price:249}
     ]
   },
   {
@@ -365,6 +371,45 @@ const CATEGORIES = [
 
 let currentUser = null;
 let selectedProduct = null;
+
+/* ============ ЛАУНЧЕР С GITHUB ============ */
+async function loadLauncherInfo(){
+  const meta = document.getElementById('launcherMeta');
+  const btn = document.getElementById('launcherDownload');
+
+  try{
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/releases/latest`);
+    if(!res.ok) throw new Error('Release не найден');
+    const data = await res.json();
+
+    const version = data.tag_name || 'v?';
+    const publishedAt = new Date(data.published_at).toLocaleDateString('ru-RU', {
+      day:'numeric', month:'long', year:'numeric'
+    });
+
+    // Ищем .exe в ассетах
+    const asset = (data.assets || []).find(a => a.name.toLowerCase().endsWith('.exe'));
+    if(!asset){
+      meta.classList.remove('loading');
+      meta.textContent = 'Файл лаунчера не найден в релизе';
+      return;
+    }
+
+    const sizeMb = (asset.size / 1024 / 1024).toFixed(1);
+    meta.classList.remove('loading');
+    meta.textContent = `${version} · ${sizeMb} МБ · ${publishedAt}`;
+
+    btn.href = asset.browser_download_url;
+    btn.classList.remove('disabled');
+  } catch(e){
+    console.error('Ошибка загрузки данных лаунчера:', e);
+    meta.classList.remove('loading');
+    meta.textContent = 'Не удалось загрузить информацию о лаунчере';
+    // Fallback — прямая ссылка на v0.1
+    btn.href = `https://github.com/${GITHUB_USER}/${GITHUB_REPO}/releases/download/v0.1/LuarSMP-Setup-0.1.exe`;
+    btn.classList.remove('disabled');
+  }
+}
 
 /* ============ РЕНДЕР КАТЕГОРИЙ ============ */
 function renderShop(){
@@ -420,7 +465,6 @@ document.getElementById('buySubmit').addEventListener('click', async function(){
     });
     const data = await res.json();
     if(data.url){
-      // Сохраняем операцию в истории
       try{
         await fetch(`${BACKEND_URL}/api/add-operation`, {
           method:'POST', headers:{'Content-Type':'application/json'},
@@ -444,7 +488,7 @@ document.getElementById('buySubmit').addEventListener('click', async function(){
   }
 });
 
-/* ============ АВТОРИЗАЦИЯ (СЕРВЕРНАЯ) ============ */
+/* ============ АВТОРИЗАЦИЯ ============ */
 document.getElementById('loginBtn').addEventListener('click', () => openModal('authModal'));
 document.getElementById('userChip').addEventListener('click', () => switchTab('account'));
 document.getElementById('authClose').addEventListener('click', () => closeModal('authModal'));
@@ -463,7 +507,6 @@ document.getElementById('goLogin').addEventListener('click', () => {
   document.getElementById('authSub').textContent = 'Войди, чтобы покупать привилегии';
 });
 
-// ВХОД
 document.getElementById('loginSubmit').addEventListener('click', async function(){
   const nick = document.getElementById('loginNick').value.trim();
   const pass = document.getElementById('loginPass').value;
@@ -471,30 +514,22 @@ document.getElementById('loginSubmit').addEventListener('click', async function(
   err.classList.remove('show');
   if(!nick || !pass){ err.textContent = 'Заполните все поля'; err.classList.add('show'); return; }
 
-  this.disabled = true;
-  this.textContent = 'Проверка...';
+  this.disabled = true; this.textContent = 'Проверка...';
   try{
     const res = await fetch(`${BACKEND_URL}/api/login`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ nick, password: pass })
     });
     const data = await res.json();
-    if(data.ok){
-      loginUser(data);
-    } else {
-      err.textContent = data.error || 'Неверный ник или пароль';
-      err.classList.add('show');
-    }
+    if(data.ok){ loginUser(data); }
+    else { err.textContent = data.error || 'Неверный ник или пароль'; err.classList.add('show'); }
   } catch(e){
-    err.textContent = 'Ошибка соединения с сервером';
-    err.classList.add('show');
+    err.textContent = 'Ошибка соединения с сервером'; err.classList.add('show');
   } finally {
-    this.disabled = false;
-    this.textContent = 'Войти';
+    this.disabled = false; this.textContent = 'Войти';
   }
 });
 
-// РЕГИСТРАЦИЯ
 document.getElementById('registerSubmit').addEventListener('click', async function(){
   const nick = document.getElementById('regNick').value.trim();
   const email = document.getElementById('regEmail').value.trim();
@@ -509,8 +544,7 @@ document.getElementById('registerSubmit').addEventListener('click', async functi
   if(pass.length < 6){ err.textContent = 'Пароль минимум 6 символов'; err.classList.add('show'); return; }
   if(pass !== pass2){ err.textContent = 'Пароли не совпадают'; err.classList.add('show'); return; }
 
-  this.disabled = true;
-  this.textContent = 'Создание...';
+  this.disabled = true; this.textContent = 'Создание...';
   try{
     const res = await fetch(`${BACKEND_URL}/api/register`, {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -518,19 +552,15 @@ document.getElementById('registerSubmit').addEventListener('click', async functi
     });
     const data = await res.json();
     if(data.ok){
-      ok.textContent = '✅ Аккаунт создан! Выполняем вход...';
-      ok.classList.add('show');
+      ok.textContent = '✅ Аккаунт создан! Выполняем вход...'; ok.classList.add('show');
       setTimeout(() => loginUser(data), 900);
     } else {
-      err.textContent = data.error || 'Ошибка регистрации';
-      err.classList.add('show');
+      err.textContent = data.error || 'Ошибка регистрации'; err.classList.add('show');
     }
   } catch(e){
-    err.textContent = 'Ошибка соединения с сервером';
-    err.classList.add('show');
+    err.textContent = 'Ошибка соединения с сервером'; err.classList.add('show');
   } finally {
-    this.disabled = false;
-    this.textContent = 'Создать аккаунт';
+    this.disabled = false; this.textContent = 'Создать аккаунт';
   }
 });
 
@@ -559,7 +589,6 @@ async function renderAccount(){
     root.innerHTML = '<div class="account-block"><h4>Статус</h4><div class="big-value">Вы не вошли</div><div class="sub-value">Войдите, чтобы увидеть данные</div></div>';
     return;
   }
-  // Обновляем данные с сервера
   try{
     const res = await fetch(`${BACKEND_URL}/api/user/${encodeURIComponent(currentUser.nick)}`);
     if(res.ok){
@@ -669,8 +698,10 @@ function attachLavaEffect(el){
   el.addEventListener('click', e => { spawnDrip(e.clientX, e.clientY, 8); });
 }
 
+/* ============ СТАРТ ============ */
 window.addEventListener('load', async () => {
   renderShop();
+  loadLauncherInfo();
   document.querySelectorAll('.submit-btn,.download-btn,.login-btn,.icon-btn,.logout-btn,.tab-btn').forEach(attachLavaEffect);
 
   const sess = JSON.parse(localStorage.getItem('luar_session') || 'null');
@@ -683,9 +714,7 @@ window.addEventListener('load', async () => {
       } else {
         localStorage.removeItem('luar_session');
       }
-    } catch(e){
-      // Если сервер недоступен, не логиним автоматически
-    }
+    } catch(e){}
   }
   document.getElementById('cube-wrap').classList.add('pos-left');
 });
