@@ -1,415 +1,939 @@
 <!DOCTYPE html>
-<html lang="ru" data-theme="dark">
+<html lang="ru" data-theme="dark" data-color="blue" data-card-style="rows">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LuarSMP — Магазин</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-:root{
-  --accent:#4a9eff;--accent-2:#7c5cff;--accent-3:#00d4ff;
-  --bg-1:#050914;--bg-2:#0a1428;--bg-3:#0d1e3d;
-  --surface:rgba(255,255,255,0.04);
-  --surface-hover:rgba(255,255,255,0.09);
-  --border:rgba(120,170,255,0.12);
-  --border-hover:rgba(120,170,255,0.35);
-  --text:#eef4ff;--text-2:#8fa5c4;--text-3:#5a708f;
-  --radius:18px;
-  --tr:0.45s cubic-bezier(0.22,1,0.36,1);
+:root {
+  --bg-1:#05070d; --bg-2:#0a0f1c; --text:#f0f4fa; --text-dim:#9aa9be;
+  --accent:#6c8cff; --accent-2:#b388ff;
+  --glass-bg:rgba(255,255,255,0.06);
+  --glass-bg-strong:rgba(255,255,255,0.10);
+  --glass-border:rgba(255,255,255,0.14);
+  --glass-shadow:0 20px 60px rgba(0,0,0,0.55);
+  --glass-highlight:inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(255,255,255,0.04);
+  --radius:26px;
+  --ease:cubic-bezier(0.23,1,0.32,1);
 }
 [data-theme="light"]{
-  --bg-1:#eaf1fb;--bg-2:#d8e5f8;--bg-3:#c8dbf4;
-  --surface:rgba(255,255,255,0.7);
-  --surface-hover:rgba(255,255,255,0.95);
-  --border:rgba(70,120,200,0.18);
-  --border-hover:rgba(70,120,200,0.45);
-  --text:#0a1a33;--text-2:#4a6180;--text-3:#8398b3;
+  --bg-1:#eef2f8; --bg-2:#dbe4f2; --text:#0b1220; --text-dim:#54637a;
+  --glass-bg:rgba(255,255,255,0.55);
+  --glass-bg-strong:rgba(255,255,255,0.78);
+  --glass-border:rgba(255,255,255,0.85);
+  --glass-shadow:0 20px 60px rgba(30,50,90,0.14);
+  --glass-highlight:inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(0,0,0,0.04);
 }
+[data-color="blue"]{--accent:#6c8cff;--accent-2:#b388ff}
+[data-color="red"]{--accent:#ff5e5e;--accent-2:#ff9f6c}
+[data-color="orange"]{--accent:#ff9f43;--accent-2:#ffd166}
+[data-color="amber"]{--accent:#ffc107;--accent-2:#ffd970}
+[data-color="yellow"]{--accent:#ffe14d;--accent-2:#fff59d}
+[data-color="lime"]{--accent:#a3e635;--accent-2:#d9f99d}
+[data-color="green"]{--accent:#4ade80;--accent-2:#a7f3d0}
+[data-color="emerald"]{--accent:#10b981;--accent-2:#6ee7b7}
+[data-color="teal"]{--accent:#14b8a6;--accent-2:#5eead4}
+[data-color="cyan"]{--accent:#22d3ee;--accent-2:#a5f3fc}
+[data-color="sky"]{--accent:#38bdf8;--accent-2:#bae6fd}
+[data-color="indigo"]{--accent:#818cf8;--accent-2:#c7d2fe}
+[data-color="violet"]{--accent:#a78bfa;--accent-2:#ddd6fe}
+[data-color="purple"]{--accent:#c084fc;--accent-2:#e9d5ff}
+[data-color="fuchsia"]{--accent:#e879f9;--accent-2:#f5d0fe}
+[data-color="pink"]{--accent:#f472b6;--accent-2:#fbcfe8}
+
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{height:100%}
 body{
-  font-family:'Inter','Segoe UI',-apple-system,sans-serif;
-  background:linear-gradient(135deg,var(--bg-1) 0%,var(--bg-2) 50%,var(--bg-3) 100%);
-  background-attachment:fixed;color:var(--text);min-height:100vh;overflow-x:hidden;
-  transition:background .5s ease,color .5s ease;position:relative;
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:
+    radial-gradient(circle at 15% 20%,color-mix(in srgb,var(--accent) 22%,transparent),transparent 55%),
+    radial-gradient(circle at 85% 80%,color-mix(in srgb,var(--accent-2) 20%,transparent),transparent 55%),
+    linear-gradient(160deg,var(--bg-1) 0%,var(--bg-2) 100%);
+  color:var(--text);min-height:100vh;padding:20px;overflow-x:hidden;
+  transition:background .8s var(--ease),color .5s var(--ease);
+  position:relative;
 }
-#cube-stage{position:fixed;inset:0;z-index:0;pointer-events:none;perspective:1400px;overflow:hidden}
-#cube-wrap{position:absolute;top:50%;left:25%;transform:translate(-50%,-50%);
-  transition:left .9s cubic-bezier(0.22,1,0.36,1),transform .9s cubic-bezier(0.22,1,0.36,1);
-  transform-style:preserve-3d;width:280px;height:280px}
-#cube-wrap.pos-left{left:8%}
-#cube-wrap.pos-center{left:50%}
-#cube-wrap.pos-right{left:92%}
-#cube{position:relative;width:100%;height:100%;transform-style:preserve-3d;animation:spin 22s linear infinite}
-@keyframes spin{0%{transform:rotateX(-25deg) rotateY(0)}100%{transform:rotateX(-25deg) rotateY(360deg)}}
-.face{position:absolute;width:280px;height:280px;border:1.5px solid rgba(74,158,255,0.35);
-  background:linear-gradient(135deg,rgba(74,158,255,0.08),rgba(124,92,255,0.05));
-  box-shadow:inset 0 0 60px rgba(74,158,255,0.15);backdrop-filter:blur(2px)}
-.f1{transform:translateZ(140px)}.f2{transform:rotateY(180deg) translateZ(140px)}
-.f3{transform:rotateY(90deg) translateZ(140px)}.f4{transform:rotateY(-90deg) translateZ(140px)}
-.f5{transform:rotateX(90deg) translateZ(140px)}.f6{transform:rotateX(-90deg) translateZ(140px)}
-.glow-orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;opacity:.55}
-.orb-1{width:520px;height:520px;background:var(--accent);top:-180px;left:-120px}
-.orb-2{width:420px;height:420px;background:var(--accent-2);bottom:-160px;right:-100px}
-header{position:sticky;top:0;z-index:100;padding:16px 28px;display:flex;align-items:center;
-  justify-content:space-between;background:rgba(5,9,20,0.55);backdrop-filter:blur(22px);
-  -webkit-backdrop-filter:blur(22px);border-bottom:1px solid var(--border);transition:background .5s ease}
-[data-theme="light"] header{background:rgba(240,246,255,0.65)}
-.brand{display:flex;align-items:center;gap:12px;font-size:1.35rem;font-weight:800;letter-spacing:.3px}
-.brand .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
-  display:grid;place-items:center;box-shadow:0 8px 24px rgba(74,158,255,0.4);font-size:1.1rem}
-.brand span{background:linear-gradient(135deg,var(--accent-3),var(--accent),var(--accent-2));
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.header-actions{display:flex;align-items:center;gap:12px}
-.icon-btn{width:42px;height:42px;border-radius:12px;background:var(--surface);border:1px solid var(--border);
-  color:var(--text);cursor:pointer;display:grid;place-items:center;font-size:1rem;transition:all var(--tr);overflow:hidden}
-.icon-btn:hover{background:var(--surface-hover);border-color:var(--border-hover);transform:translateY(-2px);
-  box-shadow:0 8px 24px rgba(74,158,255,0.25)}
-.login-btn{padding:10px 22px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
-  color:#fff;border:none;font-weight:600;cursor:pointer;font-size:.92rem;display:flex;align-items:center;gap:8px;
-  transition:all var(--tr);box-shadow:0 8px 24px rgba(74,158,255,0.3);overflow:hidden}
-.login-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(74,158,255,0.5)}
-.user-chip{display:flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:32px;
-  background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:all var(--tr)}
-.user-chip:hover{border-color:var(--border-hover);background:var(--surface-hover)}
-.user-chip .avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent-2));
-  display:grid;place-items:center;font-weight:700;font-size:.85rem;color:#fff}
+body.shake{animation:bodyShake .45s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes bodyShake{
+  0%,100%{transform:translate3d(0,0,0)}
+  15%{transform:translate3d(-2px,1px,0)}
+  30%{transform:translate3d(2px,-1px,0)}
+  45%{transform:translate3d(-2px,1px,0)}
+  60%{transform:translate3d(2px,-1px,0)}
+  80%{transform:translate3d(-1px,0,0)}
+}
+
+#particles-canvas,.bg-orb{position:fixed;inset:0;pointer-events:none;z-index:0}
+.bg-orb{filter:blur(90px);opacity:.6}
+.bg-orb.a{
+  background:radial-gradient(circle at 25% 30%,color-mix(in srgb,var(--accent) 60%,transparent),transparent 45%);
+  animation:orbFloat 22s ease-in-out infinite alternate
+}
+.bg-orb.b{
+  background:radial-gradient(circle at 75% 70%,color-mix(in srgb,var(--accent-2) 55%,transparent),transparent 45%);
+  animation:orbFloat 26s ease-in-out infinite alternate-reverse
+}
+@keyframes orbFloat{
+  0%{transform:translate3d(-4%,-3%,0) scale(1)}
+  50%{transform:translate3d(5%,4%,0) scale(1.15)}
+  100%{transform:translate3d(-3%,6%,0) scale(.95)}
+}
+.container{max-width:1240px;margin:0 auto;position:relative;z-index:2;padding-bottom:180px}
+
+.splash{
+  position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(circle at 50% 50%,#0a0f1c 0%,#03050a 70%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow:hidden;
+  transition:opacity .9s var(--ease),visibility .9s
+}
+.splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.splash-particles span{
+  position:absolute;width:3px;height:3px;border-radius:50%;
+  opacity:0;animation:spRise 6s linear infinite
+}
+@keyframes spRise{
+  0%{transform:translateY(105vh) scale(.4);opacity:0}
+  15%{opacity:1}
+  85%{opacity:1}
+  100%{transform:translateY(-10vh) scale(1.2);opacity:0}
+}
+.splash-stage{
+  width:200px;height:200px;
+  position:relative;
+  perspective:900px;
+  perspective-origin:50% 50%;
+  margin-bottom:42px;
+}
+.splash-cube{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;
+  animation:cubeSpin 14s linear infinite;
+  will-change:transform
+}
+.splash-cube .face{
+  position:absolute;inset:0;
+  border:2px solid color-mix(in srgb,var(--accent) 85%,transparent);
+  background:color-mix(in srgb,var(--accent) 12%,transparent);
+  box-shadow:
+    inset 0 0 60px color-mix(in srgb,var(--accent) 55%,transparent),
+    inset 0 0 20px color-mix(in srgb,var(--accent-2) 40%,transparent),
+    0 0 25px color-mix(in srgb,var(--accent) 45%,transparent)
+}
+.splash-cube .f1{transform:translateZ(100px)}
+.splash-cube .f2{transform:rotateY(180deg) translateZ(100px)}
+.splash-cube .f3{transform:rotateY(90deg) translateZ(100px)}
+.splash-cube .f4{transform:rotateY(-90deg) translateZ(100px)}
+.splash-cube .f5{transform:rotateX(90deg) translateZ(100px)}
+.splash-cube .f6{transform:rotateX(-90deg) translateZ(100px)}
+@keyframes cubeSpin{
+  0%{transform:rotateX(-18deg) rotateY(0deg)}
+  100%{transform:rotateX(-18deg) rotateY(360deg)}
+}
+.splash-title{
+  font-size:clamp(2.4rem,8vw,5rem);font-weight:900;
+  letter-spacing:6px;display:flex;gap:4px;
+  z-index:2;position:relative
+}
+.splash-title span{
+  display:inline-block;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  opacity:0;
+  transform:translateY(30px) rotateX(-90deg);
+  animation:letterIn .9s var(--ease) forwards
+}
+@keyframes letterIn{to{opacity:1;transform:translateY(0) rotateX(0)}}
+.splash-sub{
+  margin-top:16px;font-size:.95rem;letter-spacing:8px;
+  text-transform:uppercase;color:rgba(255,255,255,.5);
+  opacity:0;animation:fadeIn 1s var(--ease) 1.4s forwards;
+  z-index:2;position:relative
+}
+@keyframes fadeIn{to{opacity:1}}
+.splash-bar{
+  margin-top:44px;width:300px;height:4px;border-radius:40px;
+  background:rgba(255,255,255,.08);overflow:hidden;
+  position:relative;z-index:2
+}
+.splash-bar i{
+  display:block;height:100%;width:0;border-radius:40px;
+  background:linear-gradient(90deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 20px var(--accent);
+  animation:barFill 3.6s var(--ease) forwards
+}
+@keyframes barFill{to{width:100%}}
+.splash-load{
+  margin-top:16px;font-size:.78rem;letter-spacing:4px;
+  color:rgba(255,255,255,.4);z-index:2;position:relative
+}
+.splash-load::after{content:'';animation:dots 1.6s steps(4,end) infinite}
+@keyframes dots{
+  0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}
+}
+
+.flying-cube{
+  position:fixed;top:0;left:0;
+  width:200px;height:200px;
+  pointer-events:none;z-index:9500;
+  perspective:900px;perspective-origin:50% 50%;
+  will-change:transform;transform-origin:100px 100px
+}
+.flying-cube .inner{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;
+  animation:cubeSpin 14s linear infinite
+}
+.flying-cube .fc{
+  position:absolute;inset:0;
+  border:2px solid color-mix(in srgb,var(--accent) 85%,transparent);
+  background:color-mix(in srgb,var(--accent) 12%,transparent);
+  box-shadow:
+    inset 0 0 60px color-mix(in srgb,var(--accent) 55%,transparent),
+    inset 0 0 20px color-mix(in srgb,var(--accent-2) 40%,transparent),
+    0 0 25px color-mix(in srgb,var(--accent) 45%,transparent)
+}
+.flying-cube .fc1{transform:translateZ(100px)}
+.flying-cube .fc2{transform:rotateY(180deg) translateZ(100px)}
+.flying-cube .fc3{transform:rotateY(90deg) translateZ(100px)}
+.flying-cube .fc4{transform:rotateY(-90deg) translateZ(100px)}
+.flying-cube .fc5{transform:rotateX(90deg) translateZ(100px)}
+.flying-cube .fc6{transform:rotateX(-90deg) translateZ(100px)}
+
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 22px;margin-bottom:40px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow),var(--glass-highlight);
+  flex-wrap:wrap;gap:14px;
+  position:relative;z-index:900
+}
+.brand{
+  font-size:1.7rem;font-weight:800;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:-.5px
+}
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.chip{
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  color:var(--text);
+  padding:9px 16px;border-radius:40px;
+  font-size:.85rem;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;
+  transition:all .35s var(--ease);
+  backdrop-filter:blur(12px);
+  user-select:none
+}
+.chip:hover{
+  background:var(--glass-bg-strong);
+  border-color:var(--accent);
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 30%,transparent)
+}
+.chip i{color:var(--accent);transition:transform .35s var(--ease)}
+.chip.open .arrow{transform:rotate(180deg)}
+.chip .arrow{font-size:.7rem;opacity:.6}
+
+.dropdown-wrap{position:relative;z-index:9500}
+.dropdown{
+  position:absolute;top:calc(100% + 10px);right:0;
+  min-width:220px;
+  background:var(--glass-bg-strong);
+  backdrop-filter:blur(30px) saturate(180%);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:18px;
+  box-shadow:0 25px 70px rgba(0,0,0,.55),var(--glass-highlight);
+  padding:8px;
+  opacity:0;visibility:hidden;
+  transform:translateY(-10px) scale(.96);
+  transition:all .28s var(--ease);
+  z-index:9600;
+  max-height:340px;overflow-y:auto
+}
+.dropdown.open{opacity:1;visibility:visible;transform:translateY(0) scale(1);z-index:9700}
+.dropdown::-webkit-scrollbar{width:5px}
+.dropdown::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--accent) 60%,transparent);border-radius:40px}
+.dropdown-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-radius:12px;
+  cursor:pointer;font-size:.88rem;color:var(--text);
+  transition:all .25s var(--ease);white-space:nowrap
+}
+.dropdown-item:hover{
+  background:color-mix(in srgb,var(--accent) 18%,transparent);
+  transform:translateX(4px)
+}
+.dropdown-item.active{
+  background:color-mix(in srgb,var(--accent) 25%,transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 50%,transparent)
+}
+.dropdown-item .swatch{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.2);
+  flex-shrink:0;box-shadow:0 0 10px currentColor
+}
+.dropdown-item i.ic{width:20px;color:var(--accent);text-align:center}
+
+.login-btn{
+  padding:10px 22px;border-radius:40px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;border:none;font-weight:600;cursor:pointer;
+  font-size:.9rem;display:flex;align-items:center;gap:8px;
+  transition:all .35s var(--ease);
+  box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 30%,transparent);
+  overflow:visible
+}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 12px 32px color-mix(in srgb,var(--accent) 50%,transparent)}
+.user-chip{
+  display:flex;align-items:center;gap:10px;
+  padding:6px 14px 6px 6px;border-radius:40px;
+  background:var(--glass-bg);border:1px solid var(--glass-border);
+  cursor:pointer;transition:all .35s var(--ease)
+}
+.user-chip:hover{border-color:var(--accent);background:var(--glass-bg-strong)}
+.user-chip .avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;font-weight:700;font-size:.85rem;color:#fff
+}
 .user-chip .uname{font-size:.9rem;font-weight:600}
-main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24px 180px}
-.tab-panel{display:none;animation:panelIn .6s cubic-bezier(0.22,1,0.36,1) both}
+
+.hero{
+  display:grid;grid-template-columns:1fr auto;
+  gap:40px;align-items:center;
+  padding:40px 36px;margin-bottom:40px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow),var(--glass-highlight);
+  overflow:hidden;position:relative;
+  animation:heroIn 1s var(--ease) .4s backwards;
+  z-index:1
+}
+@keyframes heroIn{from{opacity:0;transform:translateY(30px)}}
+.hero::before{
+  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:conic-gradient(from 0deg,transparent,color-mix(in srgb,var(--accent) 25%,transparent),transparent 30%);
+  animation:rotateSlow 14s linear infinite;pointer-events:none
+}
+@keyframes rotateSlow{to{transform:rotate(360deg)}}
+.hero>*{position:relative;z-index:2}
+.hero h1{font-size:clamp(2rem,5vw,3rem);font-weight:800;letter-spacing:-1px;line-height:1.15}
+.hero .sub{margin-top:10px;font-size:1.05rem;color:var(--text-dim)}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:18px;padding:7px 18px;border-radius:40px;
+  background:var(--glass-bg);border:1px solid var(--glass-border);
+  font-size:.85rem;color:var(--text-dim);
+  backdrop-filter:blur(12px)
+}
+.badge i{color:var(--accent)}
+
+.hero-stage{
+  width:200px;height:200px;
+  position:relative;
+  perspective:900px;
+  perspective-origin:50% 50%
+}
+.hero-cube{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;
+  animation:cubeSpin 14s linear infinite;
+  opacity:0;visibility:hidden
+}
+.hero-cube.visible{opacity:1;visibility:visible}
+.hero-cube .hc{
+  position:absolute;inset:0;
+  border:2px solid color-mix(in srgb,var(--accent) 85%,transparent);
+  background:color-mix(in srgb,var(--accent) 10%,transparent);
+  box-shadow:
+    inset 0 0 60px color-mix(in srgb,var(--accent) 50%,transparent),
+    inset 0 0 20px color-mix(in srgb,var(--accent-2) 35%,transparent),
+    0 0 25px color-mix(in srgb,var(--accent) 40%,transparent)
+}
+.hero-cube .h1{transform:translateZ(100px)}
+.hero-cube .h2{transform:rotateY(180deg) translateZ(100px)}
+.hero-cube .h3{transform:rotateY(90deg) translateZ(100px)}
+.hero-cube .h4{transform:rotateY(-90deg) translateZ(100px)}
+.hero-cube .h5{transform:rotateX(90deg) translateZ(100px)}
+.hero-cube .h6{transform:rotateX(-90deg) translateZ(100px)}
+
+.tab-panel{display:none;animation:panelIn .6s var(--ease) both}
 .tab-panel.active{display:block}
-@keyframes panelIn{from{opacity:0;transform:translateY(24px) scale(0.98);filter:blur(6px)}
-  to{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
-.panel-title{font-size:2rem;font-weight:800;margin-bottom:8px;letter-spacing:-.5px}
-.panel-sub{color:var(--text-2);margin-bottom:32px;font-size:.98rem}
-.category{margin-bottom:36px;animation:catIn .55s cubic-bezier(0.22,1,0.36,1) both}
-.category:nth-child(1){animation-delay:.02s}.category:nth-child(2){animation-delay:.08s}
-.category:nth-child(3){animation-delay:.14s}.category:nth-child(4){animation-delay:.20s}
+@keyframes panelIn{
+  from{opacity:0;transform:translateY(24px);filter:blur(6px)}
+  to{opacity:1;transform:translateY(0);filter:blur(0)}
+}
+
+.category{margin-bottom:36px;animation:catIn .55s var(--ease) both}
+.category:nth-child(1){animation-delay:.02s}
+.category:nth-child(2){animation-delay:.08s}
+.category:nth-child(3){animation-delay:.14s}
+.category:nth-child(4){animation-delay:.20s}
 .category:nth-child(5){animation-delay:.26s}
 @keyframes catIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .cat-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-left:4px}
-.cat-header .cat-icon{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
-  font-size:1rem;background:linear-gradient(135deg,rgba(74,158,255,0.15),rgba(124,92,255,0.1));
-  border:1px solid var(--border);color:var(--accent-3)}
+.cat-header .cat-icon{
+  width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+  font-size:1rem;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 20%,transparent),color-mix(in srgb,var(--accent-2) 12%,transparent));
+  border:1px solid var(--glass-border);color:var(--accent)
+}
 .cat-header h2{font-size:1.2rem;font-weight:700;letter-spacing:.2px}
-.cat-header .cat-count{font-size:.78rem;color:var(--text-3);background:var(--surface);
-  padding:3px 10px;border-radius:20px;border:1px solid var(--border)}
-.products{display:flex;flex-direction:column;gap:10px}
-.product-row{display:grid;grid-template-columns:56px 1fr auto auto;gap:18px;align-items:center;
-  padding:16px 20px;background:var(--surface);backdrop-filter:blur(18px);border:1px solid var(--border);
-  border-radius:var(--radius);transition:all var(--tr);cursor:pointer;position:relative;overflow:hidden}
-.product-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
-  background:linear-gradient(180deg,var(--accent),var(--accent-2));opacity:0;transition:opacity var(--tr)}
-.product-row:hover{border-color:var(--border-hover);background:var(--surface-hover);
-  transform:translateX(6px);box-shadow:0 12px 40px rgba(74,158,255,0.15)}
-.product-row:hover::before{opacity:1}
-.p-icon{width:56px;height:56px;border-radius:14px;display:grid;place-items:center;font-size:1.4rem;
-  background:linear-gradient(135deg,rgba(74,158,255,0.15),rgba(124,92,255,0.1));
-  border:1px solid var(--border);color:var(--accent-3)}
-.p-info h3{font-size:1rem;font-weight:700;margin-bottom:3px}
-.p-info p{color:var(--text-2);font-size:.82rem;line-height:1.4}
-.p-price{font-size:1.25rem;font-weight:800;color:var(--accent-3);white-space:nowrap}
-.p-price small{font-size:.72rem;color:var(--text-2);font-weight:400;margin-left:2px}
-.p-buy{padding:9px 22px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
-  color:#fff;border:none;font-weight:600;cursor:pointer;font-size:.85rem;transition:all var(--tr);
-  white-space:nowrap;overflow:hidden}
-.p-buy:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(74,158,255,0.4)}
-.download-btn{padding:14px 32px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
-  color:#fff;border:none;font-weight:700;font-size:.95rem;cursor:pointer;display:flex;align-items:center;gap:10px;
-  transition:all var(--tr);box-shadow:0 10px 30px rgba(74,158,255,0.35);text-decoration:none;overflow:hidden}
-.download-btn:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(74,158,255,0.55)}
-.download-btn.disabled{opacity:.5;pointer-events:none}
-.account-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
-.account-block{padding:24px;background:var(--surface);backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:var(--radius)}
-.account-block h4{font-size:.8rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--text-2);margin-bottom:14px;font-weight:600}
-.account-block .big-value{font-size:1.35rem;font-weight:700;margin-bottom:6px}
-.account-block .sub-value{font-size:.86rem;color:var(--text-2)}
-.ops-list{display:flex;flex-direction:column;gap:10px}
-.op-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;
-  background:rgba(255,255,255,0.02);border-radius:10px;font-size:.88rem;border-left:2px solid var(--accent)}
-.op-item .op-sum{color:var(--accent-3);font-weight:700}
-.logout-btn{margin-top:20px;padding:12px 28px;border-radius:12px;background:rgba(255,80,80,0.12);
-  border:1px solid rgba(255,80,80,0.3);color:#ff6b6b;font-weight:600;cursor:pointer;transition:all var(--tr);
-  display:flex;align-items:center;gap:8px;overflow:hidden}
-.logout-btn:hover{background:rgba(255,80,80,0.22);transform:translateY(-2px)}
-.tab-dock{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:90;display:flex;align-items:center;justify-content:center}
-.tab-dock-inner{display:flex;align-items:center;gap:6px;padding:8px;background:rgba(5,9,20,0.7);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:24px;
-  box-shadow:0 20px 50px rgba(0,0,0,0.5);transition:all var(--tr);max-width:100px;overflow:hidden}
-[data-theme="light"] .tab-dock-inner{background:rgba(240,246,255,0.8)}
+.cat-header .cat-count{
+  font-size:.78rem;color:var(--text-dim);background:var(--glass-bg);
+  padding:3px 10px;border-radius:20px;border:1px solid var(--glass-border)
+}
+
+.cards{display:grid;gap:16px}
+.cards[data-layout="rows"]{grid-template-columns:1fr}
+.cards[data-layout="grid"]{grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px}
+
+.card{
+  position:relative;padding:22px 26px;border-radius:var(--radius);
+  background:var(--glass-bg);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--glass-border);
+  box-shadow:var(--glass-shadow),var(--glass-highlight);
+  transition:transform .5s var(--ease),border-color .4s,box-shadow .5s;
+  overflow:hidden;opacity:0;
+  animation:cardUp .7s var(--ease) forwards;
+  z-index:1;cursor:pointer
+}
+@keyframes cardUp{to{opacity:1;transform:translateY(0)}}
+.card{transform:translateY(30px)}
+.cards[data-layout="rows"] .card{
+  display:grid;grid-template-columns:60px 1fr auto auto;
+  align-items:center;gap:26px
+}
+.cards[data-layout="grid"] .card{
+  display:flex;flex-direction:column;align-items:center;
+  text-align:center;padding:30px 22px 26px
+}
+.card::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at var(--mx,50%) var(--my,50%),
+    color-mix(in srgb,var(--accent) 22%,transparent),transparent 45%);
+  opacity:0;transition:opacity .4s;pointer-events:none
+}
+.card:hover::before{opacity:1}
+.card:hover{
+  transform:translateY(-5px) scale(1.008);
+  border-color:color-mix(in srgb,var(--accent) 60%,transparent);
+  box-shadow:
+    0 30px 70px color-mix(in srgb,var(--accent) 25%,transparent),
+    0 0 0 1px color-mix(in srgb,var(--accent) 40%,transparent),
+    var(--glass-highlight)
+}
+.card .icon{
+  font-size:2.2rem;color:var(--accent);
+  transition:transform .55s var(--ease),color .4s;
+  text-align:center
+}
+.cards[data-layout="grid"] .card .icon{font-size:2.6rem;margin-bottom:12px}
+.card:hover .icon{transform:scale(1.18) rotate(-6deg);color:var(--accent-2)}
+.card .rank{font-size:1.2rem;font-weight:800;letter-spacing:.5px}
+.cards[data-layout="grid"] .card .rank{font-size:1.25rem}
+.card .desc{font-size:.88rem;color:var(--text-dim);line-height:1.55}
+.cards[data-layout="grid"] .card .desc{min-height:62px;margin:6px 0 18px}
+.card .price{font-size:1.7rem;font-weight:800;color:var(--accent);transition:color .4s;white-space:nowrap}
+.cards[data-layout="grid"] .card .price{font-size:2.3rem;margin:10px 0 8px}
+.card .price small{font-size:.9rem;font-weight:400;color:var(--text-dim)}
+.cards[data-layout="rows"] .btn-buy{width:160px;padding:13px 0}
+.cards[data-layout="grid"] .btn-buy{width:100%;padding:15px 0}
+
+.btn-buy{
+  position:relative;border:none;border-radius:60px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;font-weight:700;font-size:.95rem;
+  cursor:pointer;letter-spacing:.4px;overflow:visible;
+  transition:transform .15s ease-out,box-shadow .4s,letter-spacing .4s;
+  box-shadow:0 10px 30px color-mix(in srgb,var(--accent) 40%,transparent);
+  isolation:isolate;will-change:transform
+}
+.btn-buy span{position:relative;z-index:3;display:inline-block;pointer-events:none}
+.btn-buy::before{
+  content:'';position:absolute;inset:0;border-radius:inherit;
+  background:linear-gradient(135deg,var(--accent-2),var(--accent));
+  opacity:0;transition:opacity .4s;z-index:1
+}
+.btn-buy:hover::before{opacity:1}
+.btn-buy:hover{box-shadow:0 18px 45px color-mix(in srgb,var(--accent) 55%,transparent)}
+
+.drop-cursor{
+  position:fixed;top:0;left:0;width:12px;height:12px;
+  border-radius:50% 50% 45% 45%;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  pointer-events:none;z-index:99999;opacity:0;
+  box-shadow:0 0 14px color-mix(in srgb,var(--accent) 80%,transparent);
+  transform:translate(-50%,-50%);transition:opacity .15s;
+  will-change:transform,opacity
+}
+.drop-cursor.visible{opacity:1}
+.drop-cursor.falling{animation:dropFall 1s cubic-bezier(.45,0,.85,1) forwards}
+@keyframes dropFall{
+  0%{transform:translate(-50%,-50%) scale(1);opacity:1}
+  25%{transform:translate(-50%,15px) scale(1.05);opacity:1}
+  65%{transform:translate(-50%,110px) scale(.9);opacity:.6}
+  100%{transform:translate(-50%,300px) scale(.4);opacity:0}
+}
+
+.footer{
+  padding:26px;text-align:center;font-size:.85rem;
+  color:var(--text-dim);
+  background:var(--glass-bg);
+  backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:var(--radius);
+  box-shadow:var(--glass-shadow),var(--glass-highlight);
+  position:relative;z-index:1
+}
+
+.tab-dock{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
+  z-index:90;display:flex;align-items:center;justify-content:center
+}
+.tab-dock-inner{
+  display:flex;align-items:center;gap:6px;padding:8px;
+  background:var(--glass-bg-strong);
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid var(--glass-border);border-radius:24px;
+  box-shadow:0 20px 50px rgba(0,0,0,.5),var(--glass-highlight);
+  transition:all .45s var(--ease);
+  max-width:100px;overflow:hidden
+}
 .tab-dock:hover .tab-dock-inner{max-width:600px}
-.tab-btn{display:flex;align-items:center;gap:8px;padding:12px 22px;border-radius:18px;border:none;
-  background:transparent;color:var(--text-2);cursor:pointer;font-weight:600;font-size:.9rem;white-space:nowrap;
-  transition:all var(--tr);opacity:0;transform:scale(0.8);pointer-events:none}
+.tab-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:12px 22px;border-radius:18px;border:none;
+  background:transparent;color:var(--text-dim);cursor:pointer;
+  font-weight:600;font-size:.9rem;white-space:nowrap;
+  transition:all .35s var(--ease);
+  opacity:0;transform:scale(.8);pointer-events:none
+}
 .tab-dock:hover .tab-btn{opacity:1;transform:scale(1);pointer-events:auto}
 .tab-btn.current{opacity:1;transform:scale(1);pointer-events:auto}
-.tab-btn:hover{background:var(--surface-hover);color:var(--text)}
-.tab-btn.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;box-shadow:0 8px 24px rgba(74,158,255,0.4)}
-.dock-handle{padding:12px;color:var(--text-2);display:grid;place-items:center;transition:all var(--tr)}
+.tab-btn:hover{background:var(--glass-bg-strong);color:var(--text)}
+.tab-btn.active{
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;box-shadow:0 8px 24px color-mix(in srgb,var(--accent) 40%,transparent)
+}
+.dock-handle{
+  padding:12px;color:var(--text-dim);
+  display:grid;place-items:center;
+  transition:all .35s var(--ease)
+}
 .tab-dock:hover .dock-handle{display:none}
-.modal-overlay{position:fixed;inset:0;background:rgba(2,5,12,0.82);backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.active{display:flex;animation:fadeIn .3s ease}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.modal{background:linear-gradient(160deg,rgba(10,20,40,0.98),rgba(5,9,20,0.98));border:1px solid var(--border);
-  border-radius:24px;padding:36px 32px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;
-  box-shadow:0 40px 100px rgba(0,0,0,0.6);position:relative;animation:modalIn .45s cubic-bezier(0.22,1,0.36,1)}
-[data-theme="light"] .modal{background:linear-gradient(160deg,rgba(255,255,255,0.98),rgba(240,246,255,0.98))}
-@keyframes modalIn{from{opacity:0;transform:translateY(30px) scale(0.94)}to{opacity:1;transform:translateY(0) scale(1)}}
-.modal-close{position:absolute;top:16px;right:18px;background:none;border:none;color:var(--text-2);font-size:1.6rem;
-  cursor:pointer;width:36px;height:36px;border-radius:10px;transition:all .3s ease}
-.modal-close:hover{background:var(--surface-hover);color:var(--text);transform:rotate(90deg)}
-.modal h2{font-size:1.5rem;font-weight:800;margin-bottom:6px}
-.modal .sub{color:var(--text-2);font-size:.9rem;margin-bottom:24px}
-.field{margin-bottom:16px}
-.field label{display:block;font-size:.78rem;color:var(--text-2);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:600}
-.field input{width:100%;padding:13px 16px;border-radius:12px;border:1px solid var(--border);
-  background:rgba(255,255,255,0.03);color:var(--text);font-size:.95rem;outline:none;transition:all .3s ease}
-[data-theme="light"] .field input{background:rgba(255,255,255,0.7)}
-.field input:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(74,158,255,0.15)}
-.submit-btn{width:100%;padding:14px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));
-  color:#fff;border:none;font-weight:700;font-size:.98rem;cursor:pointer;transition:all var(--tr);margin-top:8px;
-  box-shadow:0 10px 28px rgba(74,158,255,0.35);overflow:hidden}
-.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 36px rgba(74,158,255,0.55)}
+
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.55);
+  backdrop-filter:blur(20px) saturate(150%);
+  align-items:center;justify-content:center;
+  z-index:20000;padding:20px
+}
+.modal-overlay.active{display:flex;animation:fadeIn .35s var(--ease)}
+.modal{
+  position:relative;
+  background:var(--glass-bg-strong);
+  backdrop-filter:blur(30px) saturate(180%);
+  border:1px solid var(--glass-border);
+  border-radius:30px;
+  box-shadow:0 40px 100px rgba(0,0,0,.6),var(--glass-highlight);
+  padding:34px 30px;max-width:640px;width:100%;
+  max-height:92vh;overflow-y:auto;
+  animation:modalIn .45s var(--ease)
+}
+@keyframes modalIn{from{opacity:0;transform:translateY(40px) scale(.95)}}
+.modal::-webkit-scrollbar{width:6px}
+.modal::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--accent) 60%,transparent);border-radius:40px}
+.modal .close{
+  position:absolute;top:16px;right:22px;
+  background:var(--glass-bg);border:1px solid var(--glass-border);
+  width:38px;height:38px;border-radius:50%;
+  font-size:1.3rem;color:var(--text);cursor:pointer;
+  transition:all .35s var(--ease)
+}
+.modal .close:hover{transform:rotate(90deg) scale(1.1);border-color:var(--accent);color:var(--accent)}
+.modal h2{font-size:1.5rem;margin-bottom:8px;font-weight:800}
+.modal .sub{color:var(--text-dim);font-size:.9rem;margin-bottom:22px}
+.modal label{display:block;font-size:.85rem;color:var(--text-dim);margin:14px 0 6px;font-weight:500}
+.modal input[type="text"],.modal input[type="email"],.modal input[type="password"]{
+  width:100%;padding:14px 18px;
+  background:var(--glass-bg);
+  border:1px solid var(--glass-border);
+  border-radius:14px;color:var(--text);
+  font-size:.95rem;outline:none;
+  transition:all .3s;backdrop-filter:blur(10px)
+}
+.modal input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 25%,transparent);
+  background:var(--glass-bg-strong)
+}
+.modal .agree{
+  display:flex;gap:10px;align-items:flex-start;
+  margin:18px 0 14px;font-size:.85rem;color:var(--text-dim)
+}
+.modal .agree input[type="checkbox"]{
+  margin-top:3px;accent-color:var(--accent);
+  width:18px;height:18px;flex-shrink:0;cursor:pointer
+}
+.modal .agree a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.offer-text{
+  display:none;font-size:.82rem;line-height:1.65;
+  color:var(--text-dim);background:var(--glass-bg);
+  border-left:3px solid var(--accent);border-radius:14px;
+  padding:18px;margin:12px 0 18px;max-height:320px;overflow-y:auto;
+  white-space:pre-wrap
+}
+.offer-text.show{display:block;animation:fadeIn .4s var(--ease)}
+.offer-text strong{color:var(--text);display:block;margin:12px 0 6px}
+.offer-text strong:first-child{margin-top:0}
+.btn-pay{
+  width:100%;padding:16px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#22c55e,#10b981);
+  color:#fff;font-weight:700;font-size:1rem;
+  cursor:pointer;transition:all .35s var(--ease);
+  box-shadow:0 10px 30px rgba(34,197,94,.35)
+}
+.btn-pay:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 16px 40px rgba(34,197,94,.5)}
+.btn-pay:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.submit-btn{
+  width:100%;padding:14px;border-radius:14px;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  color:#fff;border:none;font-weight:700;font-size:.98rem;
+  cursor:pointer;transition:all .35s var(--ease);
+  margin-top:8px;box-shadow:0 10px 28px color-mix(in srgb,var(--accent) 35%,transparent);
+  overflow:visible
+}
+.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 36px color-mix(in srgb,var(--accent) 55%,transparent)}
 .submit-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.switch-link{text-align:center;margin-top:18px;font-size:.86rem;color:var(--text-2)}
+.switch-link{text-align:center;margin-top:18px;font-size:.86rem;color:var(--text-dim)}
 .switch-link a{color:var(--accent);cursor:pointer;text-decoration:none;font-weight:600}
 .switch-link a:hover{text-decoration:underline}
-.error-msg{color:#ff6b6b;font-size:.85rem;margin-top:10px;display:none;padding:10px 14px;
-  background:rgba(255,80,80,0.1);border-radius:10px;border-left:3px solid #ff6b6b}
-.error-msg.show{display:block}
-.success-msg{color:#4ade80;font-size:.85rem;margin-top:10px;display:none;padding:10px 14px;
-  background:rgba(74,222,128,0.1);border-radius:10px;border-left:3px solid #4ade80}
-.success-msg.show{display:block}
-.lava-canvas{position:fixed;inset:0;pointer-events:none;z-index:9999}
+.error-msg{
+  color:#f85149;font-size:.85rem;margin-top:10px;display:none;
+  padding:12px 14px;background:rgba(248,81,73,.1);
+  border:1px solid rgba(248,81,73,.3);border-radius:12px
+}
+.error-msg.show{display:block;animation:fadeIn .3s var(--ease)}
+.success-msg{
+  color:#4ade80;font-size:.85rem;margin-top:10px;display:none;
+  padding:12px 14px;background:rgba(74,222,128,.1);
+  border:1px solid rgba(74,222,128,.3);border-radius:12px
+}
+.success-msg.show{display:block;animation:fadeIn .3s var(--ease)}
 
-.agree-block{
-  display:flex;align-items:flex-start;gap:10px;
-  margin:18px 0 12px;padding:14px 16px;
-  background:rgba(74,158,255,0.06);
-  border:1px solid var(--border);border-radius:12px;
-  font-size:.86rem;color:var(--text-2);line-height:1.5;
+.account-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.account-block{
+  padding:24px;
+  background:var(--glass-bg);
+  backdrop-filter:blur(18px) saturate(180%);
+  border:1px solid var(--glass-border);border-radius:var(--radius);
+  box-shadow:var(--glass-shadow),var(--glass-highlight)
 }
-.agree-block input[type="checkbox"]{
-  margin-top:2px;width:18px;height:18px;flex-shrink:0;
-  accent-color:var(--accent);cursor:pointer;
+.account-block h4{
+  font-size:.8rem;text-transform:uppercase;letter-spacing:1.2px;
+  color:var(--text-dim);margin-bottom:14px;font-weight:600
 }
-.agree-block label{cursor:pointer}
-.agree-block a{color:var(--accent);text-decoration:underline;cursor:pointer;font-weight:600}
-.agree-block a:hover{color:var(--accent-3)}
+.account-block .big-value{font-size:1.35rem;font-weight:700;margin-bottom:6px}
+.account-block .sub-value{font-size:.86rem;color:var(--text-dim)}
+.ops-list{display:flex;flex-direction:column;gap:10px}
+.op-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:12px 14px;background:rgba(255,255,255,.025);
+  border-radius:10px;font-size:.88rem;
+  border-left:2px solid var(--accent)
+}
+.op-item .op-sum{color:var(--accent);font-weight:700}
+.logout-btn{
+  margin-top:20px;padding:12px 28px;border-radius:14px;
+  background:rgba(255,80,80,.12);border:1px solid rgba(255,80,80,.3);
+  color:#ff6b6b;font-weight:600;cursor:pointer;
+  transition:all .35s var(--ease);
+  display:flex;align-items:center;gap:8px;overflow:visible
+}
+.logout-btn:hover{background:rgba(255,80,80,.22);transform:translateY(-2px)}
 
-.offer-text-box{
-  display:none;
-  max-height:380px;overflow-y:auto;
-  margin:12px 0 16px;
-  padding:20px 22px;
-  background:rgba(255,255,255,0.02);
-  border:1px solid var(--border);
-  border-left:3px solid var(--accent);
-  border-radius:12px;
-  font-size:.84rem;
-  color:var(--text-2);
-  line-height:1.65;
-}
-[data-theme="light"] .offer-text-box{background:rgba(0,0,0,0.02)}
-.offer-text-box.show{display:block;animation:panelIn .35s ease}
-.offer-text-box h3{
-  color:var(--accent-3);font-size:1rem;font-weight:800;
-  margin-bottom:10px;letter-spacing:.3px;
-}
-.offer-text-box h4{
-  color:var(--text);font-size:.9rem;font-weight:700;
-  margin:14px 0 8px;
-}
-.offer-text-box p{margin-bottom:8px}
-.offer-text-box strong{color:var(--text)}
-.offer-section{margin-bottom:14px}
-.offer-text-box::-webkit-scrollbar{width:8px}
-.offer-text-box::-webkit-scrollbar-track{background:rgba(255,255,255,0.03);border-radius:4px}
-.offer-text-box::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px}
-.offer-text-box::-webkit-scrollbar-thumb:hover{background:var(--accent-2)}
-
-/* ===== РЕЛИЗЫ ===== */
 .releases-list{display:flex;flex-direction:column;gap:16px}
-
 .release-card{
   padding:24px 26px;
-  background:var(--surface);
-  backdrop-filter:blur(18px);
-  border:1px solid var(--border);
-  border-radius:var(--radius);
-  transition:all var(--tr);
-  position:relative;
-  overflow:hidden;
-  animation:catIn .5s cubic-bezier(0.22,1,0.36,1) both;
+  background:var(--glass-bg);
+  backdrop-filter:blur(18px) saturate(180%);
+  border:1px solid var(--glass-border);border-radius:var(--radius);
+  box-shadow:var(--glass-shadow),var(--glass-highlight);
+  transition:all .45s var(--ease);
+  position:relative;overflow:hidden;
+  animation:catIn .5s var(--ease) both
 }
 .release-card::before{
   content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
   background:linear-gradient(180deg,var(--accent),var(--accent-2));
-  opacity:0;transition:opacity var(--tr);
+  opacity:0;transition:opacity .45s var(--ease)
 }
 .release-card:hover{
-  border-color:var(--border-hover);
-  background:var(--surface-hover);
-  box-shadow:0 12px 40px rgba(74,158,255,0.15);
+  border-color:color-mix(in srgb,var(--accent) 60%,transparent);
+  background:var(--glass-bg-strong);
+  box-shadow:0 16px 48px color-mix(in srgb,var(--accent) 22%,transparent)
 }
 .release-card:hover::before{opacity:1}
-.release-card.prerelease::before{
-  background:linear-gradient(180deg,#ffb347,#ff6b6b);
-  opacity:1;
-}
-.release-card.latest::before{
-  background:linear-gradient(180deg,#4ade80,#00d4ff);
-  opacity:1;
-}
+.release-card.prerelease::before{background:linear-gradient(180deg,#ffb347,#ff6b6b);opacity:1}
+.release-card.latest::before{background:linear-gradient(180deg,#4ade80,#00d4ff);opacity:1}
 
 .release-header{display:flex;gap:16px;align-items:center;margin-bottom:14px}
 .release-icon{
   width:52px;height:52px;border-radius:14px;
   display:grid;place-items:center;font-size:1.3rem;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(74,158,255,0.15),rgba(124,92,255,0.1));
-  border:1px solid var(--border);color:var(--accent-3);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 18%,transparent),color-mix(in srgb,var(--accent-2) 10%,transparent));
+  border:1px solid var(--glass-border);color:var(--accent)
 }
-.release-card.prerelease .release-icon{
-  background:linear-gradient(135deg,rgba(255,179,71,0.15),rgba(255,107,107,0.1));
-  color:#ffb347;
-}
-.release-card.latest .release-icon{
-  background:linear-gradient(135deg,rgba(74,222,128,0.15),rgba(0,212,255,0.1));
-  color:#4ade80;
-}
+.release-card.prerelease .release-icon{background:linear-gradient(135deg,rgba(255,179,71,.15),rgba(255,107,107,.1));color:#ffb347}
+.release-card.latest .release-icon{background:linear-gradient(135deg,rgba(74,222,128,.15),rgba(0,212,255,.1));color:#4ade80}
 .release-meta{flex:1;min-width:0}
 .release-title-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
-.release-title-row h3{
-  font-size:1.05rem;font-weight:700;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-.release-sub{font-size:.82rem;color:var(--text-3)}
-
+.release-title-row h3{font-size:1.05rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.release-sub{font-size:.82rem;color:var(--text-dim)}
 .badge-pre,.badge-stable,.badge-latest{
   font-size:.7rem;font-weight:700;letter-spacing:.6px;
-  padding:3px 10px;border-radius:20px;text-transform:uppercase;
+  padding:3px 10px;border-radius:20px;text-transform:uppercase
 }
-.badge-pre{
-  background:rgba(255,179,71,0.15);
-  border:1px solid rgba(255,179,71,0.4);
-  color:#ffb347;
-}
-.badge-stable{
-  background:rgba(74,222,128,0.12);
-  border:1px solid rgba(74,222,128,0.35);
-  color:#4ade80;
-}
-.badge-latest{
-  background:linear-gradient(135deg,rgba(74,222,128,0.2),rgba(0,212,255,0.15));
-  border:1px solid rgba(74,222,128,0.5);
-  color:#4ade80;
-}
-
+.badge-pre{background:rgba(255,179,71,.15);border:1px solid rgba(255,179,71,.4);color:#ffb347}
+.badge-stable{background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.35);color:#4ade80}
+.badge-latest{background:linear-gradient(135deg,rgba(74,222,128,.2),rgba(0,212,255,.15));border:1px solid rgba(74,222,128,.5);color:#4ade80}
 .release-body{
-  font-size:.88rem;line-height:1.6;color:var(--text-2);
-  margin-bottom:16px;word-wrap:break-word;
-  white-space:pre-wrap;
+  font-size:.88rem;line-height:1.6;color:var(--text-dim);
+  margin-bottom:16px;word-wrap:break-word;white-space:pre-wrap
 }
-.release-body em{color:var(--text-3);font-style:italic}
-.release-body a{color:var(--accent);text-decoration:underline}
-
-.release-assets{
-  display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;
-}
+.release-body em{color:var(--text-dim);font-style:italic}
+.release-assets{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
 .asset-item{
   display:flex;align-items:center;gap:8px;
   padding:8px 14px;border-radius:10px;
-  background:rgba(255,255,255,0.03);
-  border:1px solid var(--border);
-  font-size:.82rem;color:var(--text-2);
-  text-decoration:none;transition:all var(--tr);
+  background:rgba(255,255,255,.03);
+  border:1px solid var(--glass-border);
+  font-size:.82rem;color:var(--text-dim);
+  text-decoration:none;transition:all .35s var(--ease)
 }
-.asset-item:hover{border-color:var(--border-hover);color:var(--text);transform:translateY(-2px)}
-.asset-item i{color:var(--accent-3)}
-.asset-item .size{color:var(--text-3);font-size:.75rem}
-
-.release-footer{display:flex;justify-content:flex-end;gap:12px}
-
+.asset-item:hover{border-color:var(--accent);color:var(--text);transform:translateY(-2px)}
+.asset-item i{color:var(--accent)}
+.asset-item .size{color:var(--text-dim);font-size:.75rem;opacity:.7}
 .release-empty{
   padding:40px 24px;text-align:center;
-  background:var(--surface);border:1px dashed var(--border);
-  border-radius:var(--radius);color:var(--text-2);font-size:.95rem;
+  background:var(--glass-bg);border:1px dashed var(--glass-border);
+  border-radius:var(--radius);color:var(--text-dim);font-size:.95rem
 }
-.release-empty i{color:var(--accent-3);margin-right:8px}
+.release-empty i{color:var(--accent);margin-right:8px}
 
-@media(max-width:820px){
-  .product-row{grid-template-columns:48px 1fr auto;gap:12px;padding:14px}
-  .p-buy{grid-column:1/-1;width:100%;text-align:center}
-  .p-icon{width:48px;height:48px;font-size:1.2rem}
+.info-btn{
+  position:fixed;bottom:28px;right:28px;z-index:91;
+  width:48px;height:48px;border-radius:50%;
+  background:var(--glass-bg-strong);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
+  border:1px solid var(--glass-border);
+  color:var(--accent);font-size:1.15rem;font-weight:800;
+  cursor:pointer;display:grid;place-items:center;
+  transition:all .35s var(--ease);
+  box-shadow:0 10px 30px rgba(0,0,0,.35),var(--glass-highlight);
+  overflow:visible
+}
+.info-btn:hover{
+  transform:translateY(-3px) scale(1.08);
+  border-color:var(--accent);
+  box-shadow:0 16px 40px color-mix(in srgb,var(--accent) 40%,transparent)
+}
+
+.info-content{
+  font-size:.9rem;line-height:1.7;color:var(--text-dim)
+}
+.info-content h3{
+  font-size:1.15rem;color:var(--accent);font-weight:800;
+  margin:22px 0 10px;letter-spacing:.3px
+}
+.info-content h3:first-child{margin-top:0}
+.info-content h4{
+  font-size:.95rem;color:var(--text);font-weight:700;
+  margin:16px 0 8px
+}
+.info-content p{margin-bottom:10px}
+.info-content ul{margin:8px 0 14px 20px}
+.info-content li{margin-bottom:6px}
+.info-content strong{color:var(--text)}
+.info-content code{
+  background:var(--glass-bg);padding:2px 8px;border-radius:6px;
+  font-family:'Courier New',monospace;font-size:.85em;color:var(--accent)
+}
+.info-content .info-note{
+  padding:12px 16px;background:color-mix(in srgb,var(--accent) 8%,transparent);
+  border-left:3px solid var(--accent);border-radius:10px;
+  margin:14px 0;font-size:.85rem
+}
+
+@media (max-width:768px){
+  body{padding:12px}
+  .hero{grid-template-columns:1fr;text-align:center;padding:30px 20px}
+  .hero-stage{margin:0 auto;width:180px;height:180px}
+  .hero-cube .h1{transform:translateZ(90px)}
+  .hero-cube .h2{transform:rotateY(180deg) translateZ(90px)}
+  .hero-cube .h3{transform:rotateY(90deg) translateZ(90px)}
+  .hero-cube .h4{transform:rotateY(-90deg) translateZ(90px)}
+  .hero-cube .h5{transform:rotateX(90deg) translateZ(90px)}
+  .hero-cube .h6{transform:rotateX(-90deg) translateZ(90px)}
+  .splash-stage{width:180px;height:180px}
+  .splash-cube .f1{transform:translateZ(90px)}
+  .splash-cube .f2{transform:rotateY(180deg) translateZ(90px)}
+  .splash-cube .f3{transform:rotateY(90deg) translateZ(90px)}
+  .splash-cube .f4{transform:rotateY(-90deg) translateZ(90px)}
+  .splash-cube .f5{transform:rotateX(90deg) translateZ(90px)}
+  .splash-cube .f6{transform:rotateX(-90deg) translateZ(90px)}
+  .cards[data-layout="rows"] .card{
+    grid-template-columns:50px 1fr;
+    grid-template-areas:"icon rank" "desc desc" "price price" "btn btn";
+    gap:14px
+  }
+  .cards[data-layout="rows"] .card .icon{grid-area:icon}
+  .cards[data-layout="rows"] .card .rank{grid-area:rank}
+  .cards[data-layout="rows"] .card .desc{grid-area:desc}
+  .cards[data-layout="rows"] .card .price{grid-area:price}
+  .cards[data-layout="rows"] .card .btn-buy{grid-area:btn;width:100%}
+  .modal{padding:26px 18px}
+  .dropdown{min-width:180px}
   .account-grid{grid-template-columns:1fr}
-  .tab-dock{left:12px;right:12px;transform:none}
+  .tab-dock{left:12px;right:12px;transform:none;bottom:20px}
   .tab-dock-inner{max-width:100%}
   .tab-dock:hover .tab-dock-inner{max-width:100%}
   .tab-btn{opacity:1;transform:scale(1);pointer-events:auto;padding:10px 14px;font-size:.8rem}
   .dock-handle{display:none}
-  .panel-title{font-size:1.5rem}
-  #cube-wrap{width:200px;height:200px}
-  .face{width:200px;height:200px}
-  .f1{transform:translateZ(100px)}.f2{transform:rotateY(180deg) translateZ(100px)}
-  .f3{transform:rotateY(90deg) translateZ(100px)}.f4{transform:rotateY(-90deg) translateZ(100px)}
-  .f5{transform:rotateX(90deg) translateZ(100px)}.f6{transform:rotateX(-90deg) translateZ(100px)}
-  .release-header{flex-direction:column;align-items:flex-start;gap:10px}
-  .release-footer{justify-content:stretch}
-  .release-footer .download-btn{width:100%;justify-content:center}
+  .info-btn{bottom:20px;right:20px;width:42px;height:42px;font-size:1rem}
 }
 </style>
 </head>
 <body>
 
-<div id="cube-stage">
-  <div id="cube-wrap" class="pos-left">
-    <div id="cube">
-      <div class="face f1"></div><div class="face f2"></div><div class="face f3"></div>
-      <div class="face f4"></div><div class="face f5"></div><div class="face f6"></div>
+<div class="splash" id="splash">
+  <div class="splash-particles" id="spParticles"></div>
+  <div class="splash-stage" id="splashStage">
+    <div class="splash-cube" id="splashCube">
+      <div class="face f1"></div>
+      <div class="face f2"></div>
+      <div class="face f3"></div>
+      <div class="face f4"></div>
+      <div class="face f5"></div>
+      <div class="face f6"></div>
     </div>
   </div>
+  <div class="splash-title" id="splashTitle"></div>
+  <div class="splash-sub">survival multiplayer</div>
+  <div class="splash-bar"><i></i></div>
+  <div class="splash-load">Загрузка</div>
 </div>
-<div class="glow-orb orb-1"></div>
-<div class="glow-orb orb-2"></div>
-<canvas class="lava-canvas" id="lavaCanvas"></canvas>
 
-<header>
-  <div class="brand">
-    <div class="logo"><i class="fas fa-cube"></i></div>
-    <span>LuarSMP</span>
-  </div>
-  <div class="header-actions">
-    <button class="icon-btn" id="themeBtn"><i class="fas fa-moon"></i></button>
-    <button class="login-btn" id="loginBtn"><i class="fas fa-right-to-bracket"></i> Войти</button>
-    <div class="user-chip" id="userChip" style="display:none">
-      <div class="avatar" id="userAvatar">?</div>
-      <span class="uname" id="userName">—</span>
+<canvas id="particles-canvas"></canvas>
+<div class="bg-orb a"></div>
+<div class="bg-orb b"></div>
+
+<div class="container">
+
+  <header class="header">
+    <div class="brand">✦ LuarSMP</div>
+    <div class="controls">
+      <span class="chip"><i class="fas fa-server"></i> play.luarsmp.ru</span>
+
+      <div class="dropdown-wrap">
+        <button class="chip" id="themeToggle" data-drop="themeDropdown">
+          <i class="fas fa-moon" id="themeIcon"></i>
+          <span id="themeText">Тёмная</span>
+          <i class="fas fa-chevron-down arrow"></i>
+        </button>
+        <div class="dropdown" id="themeDropdown">
+          <div class="dropdown-item" data-theme-value="dark"><i class="fas fa-moon ic"></i> Тёмная</div>
+          <div class="dropdown-item" data-theme-value="light"><i class="fas fa-sun ic"></i> Светлая</div>
+        </div>
+      </div>
+
+      <div class="dropdown-wrap">
+        <button class="chip" id="colorToggle" data-drop="colorDropdown">
+          <i class="fas fa-palette"></i>
+          <span>Цвет</span>
+          <i class="fas fa-chevron-down arrow"></i>
+        </button>
+        <div class="dropdown" id="colorDropdown"></div>
+      </div>
+
+      <div class="dropdown-wrap">
+        <button class="chip" id="styleToggle" data-drop="styleDropdown">
+          <i class="fas fa-layer-group"></i>
+          <span id="styleText">Строчками</span>
+          <i class="fas fa-chevron-down arrow"></i>
+        </button>
+        <div class="dropdown" id="styleDropdown">
+          <div class="dropdown-item" data-layout-value="rows"><i class="fas fa-bars ic"></i> Строчками</div>
+          <div class="dropdown-item" data-layout-value="grid"><i class="fas fa-th-large ic"></i> Сеткой</div>
+        </div>
+      </div>
+
+      <button class="login-btn" id="loginBtn"><i class="fas fa-right-to-bracket"></i> Войти</button>
+      <div class="user-chip" id="userChip" style="display:none">
+        <div class="avatar" id="userAvatar">?</div>
+        <span class="uname" id="userName">—</span>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<main>
+  <section class="hero">
+    <div>
+      <h1>LuarSMP</h1>
+      <div class="sub">Выживание, приключения и своё комьюнити</div>
+      <span class="badge"><i class="fas fa-users"></i> 0 / 20</span>
+    </div>
+    <div class="hero-stage" id="heroStage">
+      <div class="hero-cube" id="heroCube">
+        <div class="hc h1"></div>
+        <div class="hc h2"></div>
+        <div class="hc h3"></div>
+        <div class="hc h4"></div>
+        <div class="hc h5"></div>
+        <div class="hc h6"></div>
+      </div>
+    </div>
+  </section>
+
   <section class="tab-panel active" id="panel-shop">
-    <h1 class="panel-title">Магазин</h1>
-    <p class="panel-sub">Привилегии и предметы для твоего выживания</p>
     <div id="shopCategories"></div>
   </section>
 
   <section class="tab-panel" id="panel-archive">
-    <h1 class="panel-title">Архив</h1>
-    <p class="panel-sub">Все версии LuarSMP Launcher</p>
+    <h1 style="font-size:2rem;font-weight:800;margin-bottom:8px;letter-spacing:-.5px">Архив</h1>
+    <p style="color:var(--text-dim);margin-bottom:32px;font-size:.98rem">Все версии LuarSMP Launcher</p>
     <div class="releases-list" id="releasesList">
       <div class="release-empty"><i class="fas fa-spinner fa-spin"></i> Загрузка релизов...</div>
     </div>
   </section>
 
   <section class="tab-panel" id="panel-account">
-    <h1 class="panel-title">Аккаунт</h1>
-    <p class="panel-sub">Управление профилем</p>
+    <h1 style="font-size:2rem;font-weight:800;margin-bottom:8px;letter-spacing:-.5px">Аккаунт</h1>
+    <p style="color:var(--text-dim);margin-bottom:32px;font-size:.98rem">Управление профилем</p>
     <div id="accountContent"></div>
   </section>
-</main>
+
+  <footer class="footer">© 2026 LuarSMP</footer>
+</div>
+
+<button class="info-btn" id="infoBtn" title="О проекте">i</button>
 
 <div class="tab-dock">
   <div class="tab-dock-inner">
@@ -420,24 +944,29 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
   </div>
 </div>
 
-<!-- МОДАЛКА АВТОРИЗАЦИИ -->
 <div class="modal-overlay" id="authModal">
   <div class="modal">
-    <button class="modal-close" id="authClose">&times;</button>
+    <button class="close" id="authClose">&times;</button>
     <h2 id="authTitle">Вход</h2>
     <p class="sub" id="authSub">Войди, чтобы покупать привилегии</p>
     <div id="loginForm">
-      <div class="field"><label>Ник</label><input type="text" id="loginNick" placeholder="Твой игровой ник"></div>
-      <div class="field"><label>Пароль</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+      <label>Ник</label>
+      <input type="text" id="loginNick" placeholder="Твой игровой ник">
+      <label>Пароль</label>
+      <input type="password" id="loginPass" placeholder="••••••••">
       <div class="error-msg" id="loginError"></div>
       <button class="submit-btn" id="loginSubmit">Войти</button>
       <div class="switch-link">Нет аккаунта? <a id="goRegister">Зарегистрироваться</a></div>
     </div>
     <div id="registerForm" style="display:none">
-      <div class="field"><label>Игровой ник</label><input type="text" id="regNick" placeholder="Только латиница, цифры, _"></div>
-      <div class="field"><label>Email</label><input type="email" id="regEmail" placeholder="example@mail.ru"></div>
-      <div class="field"><label>Пароль</label><input type="password" id="regPass" placeholder="Минимум 6 символов"></div>
-      <div class="field"><label>Повторите пароль</label><input type="password" id="regPass2" placeholder="••••••••"></div>
+      <label>Игровой ник</label>
+      <input type="text" id="regNick" placeholder="Только латиница, цифры, _">
+      <label>Email</label>
+      <input type="email" id="regEmail" placeholder="example@mail.ru">
+      <label>Пароль</label>
+      <input type="password" id="regPass" placeholder="Минимум 6 символов">
+      <label>Повторите пароль</label>
+      <input type="password" id="regPass2" placeholder="••••••••">
       <div class="error-msg" id="regError"></div>
       <div class="success-msg" id="regSuccess"></div>
       <button class="submit-btn" id="registerSubmit">Создать аккаунт</button>
@@ -446,181 +975,205 @@ main{position:relative;z-index:2;max-width:1180px;margin:0 auto;padding:40px 24p
   </div>
 </div>
 
-<!-- МОДАЛКА ПОКУПКИ -->
-<div class="modal-overlay" id="buyModal">
+<div class="modal-overlay" id="paymentModal">
   <div class="modal" style="max-width:720px">
-    <button class="modal-close" id="buyClose">&times;</button>
+    <button class="close" id="modalClose">&times;</button>
     <h2>Подтверждение покупки</h2>
     <p class="sub" id="buySub">—</p>
-
-    <div class="field">
-      <label>Игровой ник</label>
-      <input type="text" id="buyNick" readonly>
+    <label>Игровой ник</label>
+    <input type="text" id="playerName" readonly>
+    <label>Email (для чека, опционально)</label>
+    <input type="email" id="playerEmail" placeholder="example@mail.ru">
+    <div class="agree">
+      <input type="checkbox" id="agreeCheck">
+      <span>Я принимаю <a id="showOfferLink">условия оферты</a> и даю согласие на обработку <a id="showPersonalLink">персональных данных</a>.</span>
     </div>
+    <div id="offerText" class="offer-text">
+<strong>ПУБЛИЧНАЯ ОФЕРТА</strong>
+о предоставлении доступа к игровому серверу и продаже внутриигровых предметов (услуг)
 
-    <div class="field">
-      <label>Сумма к оплате</label>
-      <input type="text" id="buyAmount" readonly>
+г. Москва
+Дата публикации: 29 августа 2026 г.
+
+Настоящий документ является официальным предложением (публичной офертой) Самозанятый Чесноков Степан Евгеньевич, ИНН 263520600902 (далее – «Исполнитель»), адресованным неограниченному кругу лиц (далее – «Заказчик»), о заключении договора на предоставление доступа к игровому серверу LuarSMP и продаже внутриигровых предметов (далее – «Услуги») на условиях, изложенных ниже.
+
+<strong>1. Термины и определения</strong>
+1.1. Сайт – интернет-страница, расположенная по адресу https://luarsmp.ru
+1.2. Сервер – игровой сервер LuarSMP, доступный по адресу play.luarsmp.ru:25565
+1.3. Товар – внутриигровая привилегия, предмет, валюта или иное игровое преимущество.
+1.4. Акцепт – полное и безоговорочное принятие условий настоящей Оферты путём оплаты Товара.
+
+<strong>2. Предмет договора</strong>
+2.1. Исполнитель обязуется предоставить Заказчику доступ к Серверу и/или передать Товар.
+2.2. Перечень и стоимость Товаров размещены на Сайте.
+
+<strong>3. Порядок оказания Услуг</strong>
+3.1. Для получения Услуг Заказчик обязуется ознакомиться с Офертой, выбрать Товар, указать ник и оплатить.
+3.2. Исполнитель не несёт ответственности за ошибки в указании никнейма.
+
+<strong>4. Стоимость Услуг и порядок оплаты</strong>
+4.1. Стоимость каждого Товара указана на Сайте в рублях РФ.
+4.2. Оплата производится через платёжную систему TradeMC.
+4.3. Моментом оплаты считается поступление денежных средств на счёт Исполнителя.
+
+<strong>5. Права и обязанности сторон</strong>
+5.1. Исполнитель обязуется предоставить Услугу в течение 5 минут после подтверждения оплаты.
+5.2. Заказчик обязуется соблюдать правила игрового сервера LuarSMP.
+5.3. Исполнитель имеет право изменять условия Оферты с уведомлением на Сайте за 3 дня.
+5.4. Заказчик имеет право получить Товар в полном объёме.
+
+<strong>6. Возврат денежных средств</strong>
+6.1. Услуги не подлежат возврату согласно Постановлению Правительства РФ № 2463 от 31.12.2020.
+6.2. Возврат возможен только в случае, если Услуга не была оказана по вине Исполнителя.
+6.3. Заявление на возврат направляется на email: stepan.3mail@mail.ru
+6.4. Срок рассмотрения заявления — 5 рабочих дней.
+
+<strong>7. Ответственность сторон</strong>
+7.1. Исполнитель не несёт ответственности за утерю игровых предметов по вине Заказчика.
+7.2. Заказчик несёт ответственность за сохранность своего игрового аккаунта.
+7.3. За нарушение правил Исполнитель имеет право ограничить доступ без возврата оплаты.
+
+<strong>8. Срок действия оферты</strong>
+8.1. Оферта действует бессрочно с момента публикации.
+8.2. Исполнитель оставляет право вносить изменения.
+
+<strong>9. Применимое право</strong>
+9.1. Оферта регулируется законодательством РФ.
+9.2. Споры решаются путём переговоров, при недостижении — в суде.
+
+<strong>10. Реквизиты Исполнителя</strong>
+Исполнитель: Чесноков Степан Евгеньевич (самозанятый)
+ИНН: 263520600902
+Электронная почта: stepan.3mail@mail.ru
+
+<strong>СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ</strong>
+Я даю своё согласие Самозанятому Чеснокову Степану Евгеньевичу (ИНН 263520600902) на обработку моих персональных данных, предоставленных при оплате Услуг на сайте https://luarsmp.ru.
+
+<strong>1. Перечень персональных данных</strong>
+1.1. Игровой никнейм.
+1.2. IP-адрес.
+1.3. Адрес электронной почты — при указании.
+1.4. Сведения о платеже.
+
+<strong>2. Цели обработки</strong>
+2.1. Оказание услуг.
+2.2. Идентификация игрока.
+2.3. Направление чеков.
+2.4. Разрешение споров.
+
+<strong>3. Действия с данными</strong>
+Сбор, запись, систематизация, накопление, хранение, уточнение, извлечение, использование, обезличивание, блокирование, удаление, уничтожение.
+
+<strong>4. Срок действия согласия</strong>
+Бессрочно с момента акцепта и до отзыва в письменной форме.
+
+<strong>5. Отзыв согласия</strong>
+Отзыв возможен путём письменного уведомления на stepan.3mail@mail.ru. Оператор обязан прекратить обработку в течение 30 дней.
     </div>
-
-    <div class="agree-block">
-      <input type="checkbox" id="buyAgree">
-      <label for="buyAgree">
-        Я принимаю <a id="showOfferLink" href="#">условия оферты</a> и даю
-        <a id="showPersonalLink" href="#">согласие на обработку персональных данных</a>.
-      </label>
-    </div>
-
-    <div id="offerTextBox" class="offer-text-box">
-      <div class="offer-section">
-        <h3>ПУБЛИЧНАЯ ОФЕРТА</h3>
-        <p>о предоставлении доступа к игровому серверу и продаже внутриигровых предметов (услуг)</p>
-        <p><strong>Дата публикации:</strong> 15 сентября 2026 г.</p>
-        <p>Настоящий документ является официальным предложением (публичной офертой) <strong>самозанятого Чеснокова Степана Евгеньевича</strong>, ИНН 263520600902 (далее – «Исполнитель»), адресованным неограниченному кругу лиц (далее – «Заказчик»), о заключении договора на предоставление доступа к игровому серверу LuarSMP и продаже внутриигровых предметов (далее – «Услуги») на условиях, изложенных ниже.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>1. Термины и определения</h4>
-        <p>1.1. <strong>Сайт</strong> – интернет-страница, расположенная по адресу https://luarsmp.ru, через которую Заказчик может ознакомиться с Услугами и произвести их оплату.</p>
-        <p>1.2. <strong>Сервер</strong> – игровой сервер LuarSMP, доступный по адресу play.luarsmp.ru:25565, на котором Исполнитель предоставляет доступ к игровому процессу.</p>
-        <p>1.3. <strong>Товар</strong> – внутриигровая привилегия, предмет, валюта или иное игровое преимущество, перечисленное на Сайте и доступное для приобретения.</p>
-        <p>1.4. <strong>Акцепт</strong> – полное и безоговорочное принятие условий настоящей Оферты путём оплаты Товара.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>2. Предмет договора</h4>
-        <p>2.1. Исполнитель обязуется предоставить Заказчику доступ к Серверу и/или передать Товар (внутриигровые предметы, привилегии, валюту) в соответствии с выбранным Заказчиком пакетом, а Заказчик обязуется оплатить Услуги в порядке и на условиях, предусмотренных настоящей Офертой.</p>
-        <p>2.2. Перечень и стоимость Товаров размещены на Сайте и являются неотъемлемой частью настоящей Оферты.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>3. Порядок оказания Услуг</h4>
-        <p>3.1. Для получения Услуг Заказчик обязуется:</p>
-        <p>— ознакомиться с условиями настоящей Оферты;<br>
-        — выбрать Товар на Сайте и указать свой игровой никнейм (Nickname), используемый на Сервере;<br>
-        — оплатить выбранный Товар через платёжную систему, предоставленную на Сайте;<br>
-        — после оплаты Исполнитель в автоматическом режиме (через плагин или RCON) передаёт Заказчику Товар на Сервере.</p>
-        <p>3.2. Исполнитель не несёт ответственности за ошибки в указании никнейма Заказчиком. В случае ошибочного указания никнейма Товар не может быть передан другому игроку или возвращён.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>4. Стоимость Услуг и порядок оплаты</h4>
-        <p>4.1. Стоимость каждого Товара указана на Сайте в рублях Российской Федерации.</p>
-        <p>4.2. Оплата производится через платёжную систему, доступную на Сайте (TradeMC). Заказчик оплачивает полную стоимость Товара без дополнительных комиссий, если иное не указано на странице оплаты.</p>
-        <p>4.3. Моментом оплаты считается поступление денежных средств на счёт Исполнителя в полном объёме.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>5. Права и обязанности сторон</h4>
-        <p>5.1. <strong>Исполнитель обязуется:</strong></p>
-        <p>— предоставить доступ к Серверу и/или передать Товар в течение 5 минут после подтверждения оплаты;<br>
-        — обеспечить работоспособность Сервера и Сайта в пределах своих технических возможностей;<br>
-        — не передавать персональные данные Заказчика третьим лицам, за исключением случаев, предусмотренных законодательством РФ.</p>
-        <p>5.2. <strong>Заказчик обязуется:</strong></p>
-        <p>— соблюдать правила игрового сервера LuarSMP;<br>
-        — не использовать Сервер и его ресурсы для противоправных действий, распространения вирусов, оскорблений, спама, мошенничества;<br>
-        — не нарушать авторские и смежные права на игровой контент;<br>
-        — не пытаться взломать, модифицировать или иным образом нарушать работу Сервера и Сайта.</p>
-        <p>5.3. <strong>Исполнитель имеет право:</strong></p>
-        <p>— в одностороннем порядке изменять условия настоящей Оферты с предварительным уведомлением на Сайте не менее чем за 3 дня до вступления изменений в силу;<br>
-        — приостановить или прекратить доступ Заказчика к Серверу в случае нарушения им правил сервера или условий Оферты без возврата оплаты;<br>
-        — отказать в предоставлении Услуг, если Заказчик не достиг возраста 14 лет или не имеет согласия родителей на совершение платежей.</p>
-        <p>5.4. <strong>Заказчик имеет право:</strong></p>
-        <p>— получить Товар в полном объёме в соответствии с условиями оплаты;<br>
-        — отказаться от дальнейшего использования Услуг в любое время, однако оплаченные Товары возврату не подлежат (см. п. 6).</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>6. Возврат денежных средств</h4>
-        <p>6.1. Услуги, предоставляемые Исполнителем, являются информационно-развлекательными и не подлежат возврату в соответствии с Постановлением Правительства РФ № 2463 от 31.12.2020 (перечень непродовольственных товаров надлежащего качества, не подлежащих возврату и обмену).</p>
-        <p>6.2. Возврат денежных средств возможен <strong>ТОЛЬКО</strong> в следующих исключительных случаях:</p>
-        <p>— услуга не была оказана по вине Исполнителя (например, Товар не был выдан в течение 24 часов после подтверждения оплаты);<br>
-        — ошибка в списании денежных средств (удвоение оплаты и т.п.).</p>
-        <p>6.3. Для инициирования возврата Заказчик обязан направить письменное заявление на email Исполнителя: <strong>stepan.3mail@mail.ru</strong> с указанием:</p>
-        <p>— никнейма на Сервере;<br>
-        — даты и суммы платежа;<br>
-        — номера транзакции (чек);<br>
-        — причины возврата.</p>
-        <p>6.4. Исполнитель рассматривает заявление в течение 5 рабочих дней и принимает решение. В случае положительного решения возврат осуществляется тем же способом, которым был произведён платёж, в течение 10 рабочих дней.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>7. Ответственность сторон</h4>
-        <p>7.1. Исполнитель <strong>не несёт ответственности</strong> за:</p>
-        <p>— утерю, кражу или порчу внутриигровых предметов по вине самого Заказчика (передача пароля, взлом аккаунта, нарушение правил сервера);<br>
-        — перерывы в работе Сервера, вызванные техническими причинами (обновления, DDoS-атаки, сбои оборудования), если длительность перерыва не превышает 24 часов в месяц;<br>
-        — действия третьих лиц, направленные на нарушение работы Сервера или Сайта;<br>
-        — любые прямые или косвенные убытки Заказчика, связанные с использованием Сервера (включая упущенную выгоду).</p>
-        <p>7.2. Заказчик несёт полную ответственность за сохранность своего игрового аккаунта и пароля. Передача доступа к аккаунту третьим лицам осуществляется на свой страх и риск.</p>
-        <p>7.3. За нарушение правил сервера или условий Оферты Исполнитель имеет право ограничить доступ Заказчика к Серверу без возврата оплаты.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>8. Срок действия оферты и порядок изменения</h4>
-        <p>8.1. Настоящая Оферта вступает в силу с момента её публикации на Сайте и действует бессрочно.</p>
-        <p>8.2. Исполнитель оставляет за собой право вносить изменения в условия Оферты. Новая редакция Оферты вступает в силу с момента её публикации на Сайте.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>9. Применимое право и разрешение споров</h4>
-        <p>9.1. Настоящая Оферта регулируется законодательством Российской Федерации.</p>
-        <p>9.2. Все споры решаются путём переговоров. При недостижении согласия спор передаётся на рассмотрение в суд в соответствии с законодательством РФ.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>10. Реквизиты Исполнителя</h4>
-        <p><strong>Исполнитель:</strong> Чесноков Степан Евгеньевич (самозанятый)<br>
-        <strong>ИНН:</strong> 263520600902<br>
-        <strong>Электронная почта:</strong> stepan.3mail@mail.ru</p>
-      </div>
-
-      <div class="offer-section" style="border-top:2px solid var(--accent);margin-top:20px;padding-top:20px">
-        <h3>СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ</h3>
-        <p>Я, действуя свободно, своей волей и в своём интересе, даю своё согласие <strong>самозанятому Чеснокову Степану Евгеньевичу</strong> (ИНН 263520600902) (далее – «Оператор») на обработку моих персональных данных, предоставленных мной при оплате Услуг на сайте <strong>https://luarsmp.ru</strong>.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>1. Перечень персональных данных</h4>
-        <p>1.1. Игровой никнейм (Nickname), используемый на сервере LuarSMP.</p>
-        <p>1.2. IP-адрес, с которого осуществляется подключение к Серверу и Сайту.</p>
-        <p>1.3. Адрес электронной почты (e-mail) — при его указании Заказчиком.</p>
-        <p>1.4. Сведения о платеже (сумма, дата, номер транзакции).</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>2. Цели обработки персональных данных</h4>
-        <p>2.1. Оказание информационно-развлекательных услуг (выдача внутриигровых привилегий и предметов).</p>
-        <p>2.2. Идентификация Заказчика как игрока на Сервере LuarSMP.</p>
-        <p>2.3. Ведение статистики посещений и улучшение работы Сайта и Сервера.</p>
-        <p>2.4. Направление чеков и уведомлений об оплате (при указании e-mail).</p>
-        <p>2.5. Разрешение споров и претензий, связанных с оказанием Услуг.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>3. Перечень действий с персональными данными</h4>
-        <p>Согласие даётся на сбор, запись, систематизацию, накопление, хранение, уточнение (обновление, изменение), извлечение, использование, обезличивание, блокирование, удаление, уничтожение моих персональных данных.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>4. Срок действия согласия</h4>
-        <p>Настоящее согласие действует бессрочно с момента его акцепта (постановки галочки при оформлении заказа) и до момента его отзыва мной в письменной форме.</p>
-      </div>
-
-      <div class="offer-section">
-        <h4>5. Отзыв согласия</h4>
-        <p>Я осознаю, что могу отозвать своё согласие в любое время путём отправки письменного уведомления на электронный адрес Оператора: <strong>stepan.3mail@mail.ru</strong>. В случае отзыва согласия Оператор обязан прекратить обработку моих персональных данных и уничтожить их в течение 30 дней, если иное не предусмотрено законодательством РФ.</p>
-      </div>
-    </div>
-
-    <div class="error-msg" id="buyError"></div>
-
-    <button class="submit-btn" id="buySubmit" disabled>Перейти к оплате</button>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-pay" id="payButton" disabled>Перейти к оплате</button>
   </div>
 </div>
 
+<div class="modal-overlay" id="infoModal">
+  <div class="modal" style="max-width:780px">
+    <button class="close" id="infoClose">&times;</button>
+    <h2>О проекте LuarSMP</h2>
+    <p class="sub">Подробная информация и правила</p>
+
+    <div class="info-content">
+
+      <h3>🎮 Что такое LuarSMP</h3>
+      <p><strong>LuarSMP</strong> — это многопользовательский игровой сервер по Minecraft, созданный для тех, кто ценит настоящее выживание, душевное комьюнити и атмосферу приключения без лишнего гринда. У нас есть собственный набор механик, плагинов и правил, которые делают игру интереснее, но при этом не ломают базовый баланс и не превращают выживание в бесконечную ферму ресурсов.</p>
+      <p>Наш проект — это не про «победить» или «прокачаться быстрее всех». Это про то, чтобы зайти вечером, построить что-то красивое, встретить друзей, исследовать мир и просто хорошо провести время.</p>
+
+      <h3>🎯 Чем мы отличаемся</h3>
+      <ul>
+        <li><strong>Уникальные механики.</strong> У нас есть система улучшенной рубки деревьев, жильной добычи руд, промышленные механизмы, кастомные зачарования, машинный транспорт и многое другое — всё это встроено в обычный игровой процесс.</li>
+        <li><strong>Отзывчивая администрация.</strong> Мы всегда на связи — через Discord, сайт или внутриигровой чат. Любая проблема решается быстро.</li>
+        <li><strong>Прозрачные донаты.</strong> Все донатные привилегии чётко расписаны, не дают несправедливого преимущества и не разрушают баланс. Вся прибыль идёт на поддержку и развитие проекта.</li>
+        <li><strong>Честная экономика.</strong> Никаких «плати — и ты бог». Все внутриигровые ценности добываются в игре, а не покупаются за реальные деньги.</li>
+        <li><strong>Своё комьюнити.</strong> У нас нет агрессии, гриферов и токсиков. Мы следим за атмосферой и помогаем новичкам.</li>
+      </ul>
+
+      <h3>💰 Донаты и привилегии</h3>
+      <p>На сервере действует система добровольных пожертвований. Все донаты идут на поддержку проекта.</p>
+      <p>Приобретая привилегию, вы получаете:</p>
+      <ul>
+        <li>Дополнительные дома (от 3 до 25 в зависимости от уровня)</li>
+        <li>Улучшенные стартовые наборы</li>
+        <li>Доступ к дополнительным варпам</li>
+        <li>Приоритетную поддержку</li>
+        <li>И многое другое — полный список можно увидеть в магазине</li>
+      </ul>
+      <div class="info-note">
+        <strong>Важно:</strong> Все привилегии — это бонусы, которые делают игру удобнее, но не дают боевого преимущества. Мы против pay-to-win и следим за балансом.
+      </div>
+
+      <h3>⚔️ Оружие и броня</h3>
+      <p>В магазине доступны уникальные предметы: зачарованные мечи, трезубцы, луки с редкими чарами, а также наборы брони (незеритовая, драконья, элитры). Все предметы можно также получить в игре через обычные механики — покупка это просто способ сэкономить время.</p>
+
+      <h3>📦 Ресурсы и расходники</h3>
+      <p>Для строителей и выживальщиков доступны наборы ресурсов (алмазы, незерит, изумруды), а также полезные расходники — тотемы бессмертия, наборы зелий. Всё это можно добыть самостоятельно, но если нет времени — можно приобрести.</p>
+
+      <h3>🚀 LuarSMP Launcher</h3>
+      <p>У нас есть собственный лаунчер, который автоматически:</p>
+      <ul>
+        <li>Устанавливает нужную версию Minecraft</li>
+        <li>Загружает необходимые моды и ресурспаки</li>
+        <li>Обновляется при выходе новых версий</li>
+        <li>Авторизует вас на сервере</li>
+        <li>Позволяет играть без ручной настройки</li>
+      </ul>
+      <p>Все версии лаунчера доступны в разделе <strong>«Архив»</strong> — можно скачать как последнюю стабильную, так и предыдущие или тестовые сборки.</p>
+
+      <h3>📜 Правила сервера</h3>
+      <ul>
+        <li><strong>Уважайте других игроков.</strong> Оскорбления, травля и токсичность запрещены.</li>
+        <li><strong>Не используйте читы и запрещённые моды.</strong> Разрешены только оптимизационные моды и миникарта без сущностей.</li>
+        <li><strong>Не гриферьте и не воруйте.</strong> Все постройки игроков защищены правилами.</li>
+        <li><strong>Не рекламируйте сторонние проекты.</strong> Спам и реклама запрещены.</li>
+        <li><strong>Соблюдайте правила чата.</strong> Мат разрешён в меру, капс — нет.</li>
+        <li><strong>Слушайте администрацию.</strong> Если у вас вопрос или проблема — обращайтесь, мы поможем.</li>
+      </ul>
+
+      <h3>🛠️ Как начать играть</h3>
+      <ul>
+        <li><strong>Шаг 1:</strong> Скачайте наш лаунчер из раздела «Архив» — он автоматически установит всё необходимое.</li>
+        <li><strong>Шаг 2:</strong> Зарегистрируйтесь на сайте — это даст доступ к аккаунту и покупкам.</li>
+        <li><strong>Шаг 3:</strong> Запустите лаунчер, введите свой игровой ник и подключитесь к серверу.</li>
+        <li><strong>Шаг 4:</strong> Играйте! IP сервера: <code>play.luarsmp.ru</code></li>
+      </ul>
+      <div class="info-note">
+        <strong>Если что-то не работает:</strong> проверьте, что у вас установлена последняя версия лаунчера. Если ошибка сохраняется — напишите нам, мы поможем.
+      </div>
+
+      <h3>📞 Контакты и поддержка</h3>
+      <ul>
+        <li><strong>Сайт:</strong> https://luarsmp.ru</li>
+        <li><strong>Email для связи и возвратов:</strong> stepan.3mail@mail.ru</li>
+        <li><strong>Discord:</strong> ссылка есть в шапке сервера</li>
+        <li><strong>Техническая поддержка:</strong> внутриигровой чат или Discord</li>
+      </ul>
+
+      <h3>⚖️ Юридическая информация</h3>
+      <p>Сервер LuarSMP является информационно-развлекательным проектом. Все донаты — это добровольные пожертвования, которые идут на развитие проекта. Возврат средств возможен только в случаях, предусмотренных публичной офертой и действующим законодательством РФ.</p>
+      <p><strong>Исполнитель:</strong> самозанятый Чесноков Степан Евгеньевич, ИНН 263520600902.</p>
+      <p>Полный текст публичной оферты и согласия на обработку персональных данных доступен в модальном окне при оформлении покупки.</p>
+
+      <div class="info-note" style="margin-top:22px">
+        <strong>Спасибо, что вы с нами!</strong> Мы делаем LuarSMP лучше каждый день — и рады, что вы это видите. ❤️
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="drop-cursor" id="dropCursor"></div>
+
 <script>
 const BACKEND_URL = 'https://api.luarsmp.ru:8443';
-
+const SHOP_ID = 244378;
 const GITHUB_USER = 'LUARIX1';
 const GITHUB_REPO = 'LUARSMP';
 
@@ -641,8 +1194,8 @@ const CATEGORIES = [
   {
     id:'weapons', name:'Оружие', icon:'fa-khanda',
     items:[
-      {id:990001, name:'Меч Погибели',       desc:'Зачарованный меч с уникальными способностями', icon:'fa-khanda',  price:149},
-      {id:990002, name:'Трезубец Посейдона', desc:'Трезубец с чарами Верности и Пронзателя',      icon:'fa-water',   price:179},
+      {id:990001, name:'Меч Погибели',       desc:'Зачарованный меч с уникальными способностями', icon:'fa-khanda',   price:149},
+      {id:990002, name:'Трезубец Посейдона', desc:'Трезубец с чарами Верности и Пронзателя',      icon:'fa-water',    price:179},
       {id:990003, name:'Лук Снайпера',       desc:'Лук с чарами Силы IV и Бесконечности',         icon:'fa-bullseye', price:129}
     ]
   },
@@ -671,8 +1224,476 @@ const CATEGORIES = [
 
 let currentUser = null;
 let selectedProduct = null;
+let currentTheme = localStorage.getItem('theme') || 'dark';
+let currentColor = localStorage.getItem('color') || 'blue';
+let currentStyle = localStorage.getItem('style') || 'rows';
 
-/* ============ ЗАГРУЗКА ВСЕХ РЕЛИЗОВ С GITHUB ============ */
+const html = document.documentElement;
+const CUBE_PERIOD = 14000;
+
+function hexToRgba(hex, alpha){
+  hex = (hex || '#6c8cff').replace('#','').trim();
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const r = parseInt(hex.substring(0,2),16);
+  const g = parseInt(hex.substring(2,4),16);
+  const b = parseInt(hex.substring(4,6),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+function getAccent(){
+  return getComputedStyle(html).getPropertyValue('--accent').trim() || '#6c8cff';
+}
+
+const splashTitle = document.getElementById('splashTitle');
+'LuarSMP'.split('').forEach((ch,i) => {
+  const s = document.createElement('span');
+  s.textContent = ch;
+  s.style.animationDelay = (0.25 + i * 0.11) + 's';
+  splashTitle.appendChild(s);
+});
+
+const spParticles = document.getElementById('spParticles');
+const splashColors = ['#6c8cff','#b388ff','#22d3ee','#a78bfa','#f472b6'];
+for (let i = 0; i < 90; i++){
+  const p = document.createElement('span');
+  p.style.left = Math.random() * 100 + '%';
+  p.style.animationDelay = (Math.random() * 6) + 's';
+  p.style.animationDuration = (4 + Math.random() * 4) + 's';
+  const c = splashColors[Math.floor(Math.random() * splashColors.length)];
+  p.style.background = c;
+  p.style.boxShadow = `0 0 12px ${c}, 0 0 24px ${c}`;
+  spParticles.appendChild(p);
+}
+
+window.scrollTo(0, 0);
+
+const splash = document.getElementById('splash');
+const splashStage = document.getElementById('splashStage');
+const heroStage = document.getElementById('heroStage');
+const heroCube = document.getElementById('heroCube');
+
+const loadStart = performance.now();
+
+function launchFlyingCube(){
+  const stageRect = splashStage.getBoundingClientRect();
+  const heroRect = heroStage.getBoundingClientRect();
+
+  const size = 200;
+  const startCX = stageRect.left + stageRect.width / 2;
+  const startCY = stageRect.top + stageRect.height / 2;
+  const endCX = heroRect.left + heroRect.width / 2;
+  const endCY = heroRect.top + heroRect.height / 2;
+
+  const startLeft = startCX - size / 2;
+  const startTop = startCY - size / 2;
+  const dx = (endCX - size / 2) - startLeft;
+  const dy = (endCY - size / 2) - startTop;
+
+  const flying = document.createElement('div');
+  flying.className = 'flying-cube';
+  flying.style.left = startLeft + 'px';
+  flying.style.top = startTop + 'px';
+  flying.style.transform = 'translate3d(0,0,0)';
+
+  const inner = document.createElement('div');
+  inner.className = 'inner';
+
+  const elapsed = (performance.now() - loadStart) % CUBE_PERIOD;
+  inner.style.animationDelay = (-elapsed) + 'ms';
+
+  ['fc1','fc2','fc3','fc4','fc5','fc6'].forEach(c => {
+    const f = document.createElement('div');
+    f.className = 'fc ' + c;
+    inner.appendChild(f);
+  });
+  flying.appendChild(inner);
+  document.body.appendChild(flying);
+
+  splashStage.style.transition = 'opacity .2s ease';
+  splashStage.style.opacity = '0';
+  splash.classList.add('hide');
+
+  const duration = 1500;
+  const startTime = performance.now();
+
+  function frame(now){
+    const t = Math.min(1, (now - startTime) / duration);
+    const eased = Math.pow(t, 3);
+    const x = dx * eased;
+    const y = dy * eased;
+    flying.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+    if (t < 1){
+      requestAnimationFrame(frame);
+    } else {
+      heroCube.classList.add('visible');
+      flying.remove();
+      document.body.classList.add('shake');
+      setTimeout(() => document.body.classList.remove('shake'), 500);
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+setTimeout(launchFlyingCube, 4200);
+
+const canvas = document.getElementById('particles-canvas');
+const ctx = canvas.getContext('2d');
+let w, h, particles = [], connectionDistance = 140;
+
+function resize(){
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+class Particle {
+  constructor(){ this.reset(); }
+  reset(){
+    this.x = Math.random() * w;
+    this.y = Math.random() * h;
+    this.size = Math.random() * 2.2 + 0.6;
+    this.speedX = (Math.random() - 0.5) * 0.4;
+    this.speedY = (Math.random() - 0.5) * 0.4;
+    this.opacity = Math.random() * 0.5 + 0.15;
+  }
+  update(){
+    this.x += this.speedX; this.y += this.speedY;
+    if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) this.reset();
+  }
+  draw(){
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fillStyle = hexToRgba(getAccent(), this.opacity);
+    ctx.fill();
+  }
+}
+for (let i = 0; i < 70; i++) particles.push(new Particle());
+
+function animateParticles(){
+  ctx.clearRect(0, 0, w, h);
+  particles.forEach(p => { p.update(); p.draw(); });
+  const accent = getAccent();
+  for (let i = 0; i < particles.length; i++){
+    for (let j = i + 1; j < particles.length; j++){
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < connectionDistance){
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = hexToRgba(accent, 0.1 * (1 - dist / connectionDistance));
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+      }
+    }
+  }
+  requestAnimationFrame(animateParticles);
+}
+animateParticles();
+
+function closeAllDropdowns(except){
+  document.querySelectorAll('.dropdown').forEach(d => {
+    if (d !== except) d.classList.remove('open');
+  });
+  document.querySelectorAll('.chip').forEach(c => {
+    const target = c.dataset.drop;
+    if (!target) return;
+    const dd = document.getElementById(target);
+    if (dd !== except) c.classList.remove('open');
+  });
+}
+document.addEventListener('click', () => closeAllDropdowns());
+
+function setupDropdown(toggleId, dropdownId, handler){
+  const toggle = document.getElementById(toggleId);
+  const dropdown = document.getElementById(dropdownId);
+  toggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const wasOpen = dropdown.classList.contains('open');
+    closeAllDropdowns();
+    if (!wasOpen){
+      dropdown.classList.add('open');
+      toggle.classList.add('open');
+    }
+  });
+  dropdown.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handler(item);
+      closeAllDropdowns();
+    });
+  });
+}
+
+function markActive(dropdownId, dataKey, value){
+  document.querySelectorAll(`#${dropdownId} .dropdown-item`).forEach(item => {
+    if (item.dataset[dataKey] === value) item.classList.add('active');
+    else item.classList.remove('active');
+  });
+}
+
+html.setAttribute('data-theme', currentTheme);
+html.setAttribute('data-color', currentColor);
+html.setAttribute('data-card-style', currentStyle);
+
+const themeIcon = document.getElementById('themeIcon');
+const themeText = document.getElementById('themeText');
+
+function updateThemeUI(){
+  themeIcon.className = currentTheme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+  themeText.textContent = currentTheme === 'dark' ? 'Тёмная' : 'Светлая';
+  markActive('themeDropdown', 'themeValue', currentTheme);
+}
+updateThemeUI();
+
+setupDropdown('themeToggle', 'themeDropdown', (item) => {
+  currentTheme = item.dataset.themeValue;
+  html.setAttribute('data-theme', currentTheme);
+  localStorage.setItem('theme', currentTheme);
+  updateThemeUI();
+});
+
+const colorList = [
+  {key:'red',hex:'#ef4444',name:'Красный'},
+  {key:'orange',hex:'#f97316',name:'Оранжевый'},
+  {key:'amber',hex:'#f59e0b',name:'Янтарный'},
+  {key:'yellow',hex:'#eab308',name:'Жёлтый'},
+  {key:'lime',hex:'#84cc16',name:'Лайм'},
+  {key:'green',hex:'#22c55e',name:'Зелёный'},
+  {key:'emerald',hex:'#10b981',name:'Изумруд'},
+  {key:'teal',hex:'#14b8a6',name:'Бирюзовый'},
+  {key:'cyan',hex:'#06b6d4',name:'Голубой'},
+  {key:'sky',hex:'#0ea5e9',name:'Небесный'},
+  {key:'blue',hex:'#3b82f6',name:'Синий'},
+  {key:'indigo',hex:'#6366f1',name:'Индиго'},
+  {key:'violet',hex:'#8b5cf6',name:'Фиолетовый'},
+  {key:'purple',hex:'#a855f7',name:'Пурпурный'},
+  {key:'fuchsia',hex:'#d946ef',name:'Фуксия'},
+  {key:'pink',hex:'#ec4899',name:'Розовый'}
+];
+
+const colorDropdown = document.getElementById('colorDropdown');
+colorList.forEach(c => {
+  const item = document.createElement('div');
+  item.className = 'dropdown-item';
+  item.dataset.colorValue = c.key;
+  item.innerHTML = `<span class="swatch" style="background:${c.hex};color:${c.hex}"></span><span>${c.name}</span>`;
+  colorDropdown.appendChild(item);
+});
+
+markActive('colorDropdown', 'colorValue', currentColor);
+
+setupDropdown('colorToggle', 'colorDropdown', (item) => {
+  currentColor = item.dataset.colorValue;
+  html.setAttribute('data-color', currentColor);
+  localStorage.setItem('color', currentColor);
+  markActive('colorDropdown', 'colorValue', currentColor);
+});
+
+const styleText = document.getElementById('styleText');
+
+function updateStyleUI(){
+  styleText.textContent = currentStyle === 'rows' ? 'Строчками' : 'Сеткой';
+  document.querySelectorAll('.cards').forEach(g => g.setAttribute('data-layout', currentStyle));
+  markActive('styleDropdown', 'layoutValue', currentStyle);
+}
+
+setupDropdown('styleToggle', 'styleDropdown', (item) => {
+  currentStyle = item.dataset.layoutValue;
+  localStorage.setItem('style', currentStyle);
+  updateStyleUI();
+});
+
+const dropCursor = document.getElementById('dropCursor');
+let activeDripBtn = null;
+
+function attachDeformEffect(btn){
+  btn.addEventListener('mouseenter', (e) => {
+    activeDripBtn = btn;
+    dropCursor.classList.remove('falling');
+    dropCursor.classList.add('visible');
+    dropCursor.style.left = e.clientX + 'px';
+    dropCursor.style.top = (e.clientY + 6) + 'px';
+    btn.style.transition = 'transform .15s ease-out, box-shadow .4s, letter-spacing .4s';
+  });
+
+  btn.addEventListener('mousemove', (e) => {
+    const rect = btn.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const dx = e.clientX - cx;
+    const dy = e.clientY - cy;
+    const nx = dx / (rect.width / 2);
+    const ny = dy / (rect.height / 2);
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const maxDist = Math.sqrt(rect.width*rect.width + rect.height*rect.height) / 2;
+    const t = Math.min(1, dist / maxDist);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    const stretch = 1 + t * 0.14;
+    const compress = 1 - t * 0.09;
+    const tx = nx * 10;
+    const ty = ny * 5;
+    btn.style.transform = `translate(${tx}px, ${ty}px) rotate(${angle}deg) scale(${stretch}, ${compress}) rotate(${-angle}deg)`;
+    dropCursor.style.left = e.clientX + 'px';
+    dropCursor.style.top = (e.clientY + 6) + 'px';
+  });
+
+  btn.addEventListener('mouseleave', () => {
+    activeDripBtn = null;
+    btn.style.transition = 'transform .65s cubic-bezier(.34,1.56,.64,1), box-shadow .4s, letter-spacing .4s';
+    btn.style.transform = '';
+    dropCursor.classList.add('falling');
+    setTimeout(() => {
+      dropCursor.classList.remove('visible', 'falling');
+    }, 1000);
+  });
+}
+
+document.addEventListener('mousemove', (e) => {
+  if (activeDripBtn){
+    dropCursor.style.left = e.clientX + 'px';
+    dropCursor.style.top = (e.clientY + 6) + 'px';
+  }
+});
+
+function renderShop(){
+  const root = document.getElementById('shopCategories');
+  root.innerHTML = CATEGORIES.map(cat => `
+    <div class="category">
+      <div class="cat-header">
+        <div class="cat-icon"><i class="fas ${cat.icon}"></i></div>
+        <h2>${cat.name}</h2>
+        <span class="cat-count">${cat.items.length}</span>
+      </div>
+      <div class="cards" data-layout="${currentStyle}">
+        ${cat.items.map(p => `
+          <div class="card" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
+            <div class="icon"><i class="fas ${p.icon}"></i></div>
+            <div class="rank">${p.name}</div>
+            <div class="desc">${p.desc}</div>
+            <div class="price">${p.price} <small>₽</small></div>
+            <button class="btn-buy"><span>Купить</span></button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('mousemove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--mx', x + '%');
+      card.style.setProperty('--my', y + '%');
+    });
+
+    const btn = card.querySelector('.btn-buy');
+    attachDeformEffect(btn);
+
+    const openBuy = (e) => {
+      e.stopPropagation();
+      if(!currentUser){ openModal('authModal'); return; }
+      selectedProduct = {id: card.dataset.id, name: card.dataset.name, price: card.dataset.price};
+      document.getElementById('buySub').textContent = selectedProduct.name;
+      document.getElementById('playerName').value = currentUser.nick;
+      document.getElementById('playerEmail').value = currentUser.email || '';
+      document.getElementById('agreeCheck').checked = false;
+      document.getElementById('payButton').disabled = true;
+      document.getElementById('errorMsg').classList.remove('show');
+      document.getElementById('offerText').classList.remove('show');
+      openModal('paymentModal');
+    };
+
+    btn.addEventListener('click', openBuy);
+    card.addEventListener('click', openBuy);
+  });
+
+  updateStyleUI();
+}
+
+function openModal(id){ document.getElementById(id).classList.add('active'); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target === m) m.classList.remove('active'); }));
+
+document.getElementById('showOfferLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('offerText').classList.toggle('show');
+});
+document.getElementById('showPersonalLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  const box = document.getElementById('offerText');
+  box.classList.add('show');
+  setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
+});
+document.getElementById('agreeCheck').addEventListener('change', function(){
+  document.getElementById('payButton').disabled = !this.checked;
+});
+
+document.getElementById('payButton').addEventListener('click', function(){
+  const nickname = document.getElementById('playerName').value.trim();
+  const email = document.getElementById('playerEmail').value.trim();
+  const errorMsg = document.getElementById('errorMsg');
+  if (!nickname){
+    errorMsg.textContent = 'Пожалуйста, введите ваш игровой ник.';
+    errorMsg.classList.add('show');
+    return;
+  }
+  errorMsg.classList.remove('show');
+  executePayment(nickname, email);
+});
+
+async function executePayment(nickname, email){
+  const payButton = document.getElementById('payButton');
+  const errorMsg = document.getElementById('errorMsg');
+  payButton.disabled = true;
+  payButton.textContent = 'Обработка...';
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/create-payment`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        productId: selectedProduct.id,
+        productName: selectedProduct.name,
+        price: selectedProduct.price,
+        nickname: nickname,
+        email: email || undefined,
+        shopId: SHOP_ID
+      })
+    });
+    if (!response.ok){
+      const text = await response.text();
+      throw new Error(`Ошибка сервера: ${response.status} - ${text}`);
+    }
+    const data = await response.json();
+    if (data.url){
+      try {
+        await fetch(`${BACKEND_URL}/api/add-operation`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({
+            nick: nickname,
+            name: selectedProduct.name,
+            sum: selectedProduct.price
+          })
+        });
+      } catch(e){}
+      window.location.href = data.url;
+    } else {
+      errorMsg.textContent = data.error || 'Ошибка создания платежа.';
+      errorMsg.classList.add('show');
+      payButton.disabled = false;
+      payButton.textContent = 'Перейти к оплате';
+    }
+  } catch (error){
+    errorMsg.textContent = 'Ошибка соединения с сервером.';
+    errorMsg.classList.add('show');
+    payButton.disabled = false;
+    payButton.textContent = 'Перейти к оплате';
+  }
+}
+
 async function loadReleases(){
   const root = document.getElementById('releasesList');
   try{
@@ -696,14 +1717,9 @@ async function loadReleases(){
       });
 
       const title = rel.name || rel.tag_name || 'Без названия';
-
-      const body = rel.body && rel.body.trim()
-        ? escapeHtml(rel.body.trim())
-        : '<em>Описание отсутствует</em>';
+      const body = rel.body && rel.body.trim() ? escapeHtml(rel.body.trim()) : '<em>Описание отсутствует</em>';
 
       const assets = (rel.assets || []);
-      const exeAsset = assets.find(a => a.name.toLowerCase().endsWith('.exe'));
-
       const assetsHtml = assets.length
         ? `<div class="release-assets">${assets.map(a => {
             const mb = (a.size / 1024 / 1024).toFixed(1);
@@ -723,9 +1739,7 @@ async function loadReleases(){
 
       const icon = isLatest
         ? '<i class="fas fa-star"></i>'
-        : isPre
-          ? '<i class="fas fa-flask"></i>'
-          : '<i class="fas fa-cube"></i>';
+        : isPre ? '<i class="fas fa-flask"></i>' : '<i class="fas fa-cube"></i>';
 
       const cardClass = isLatest ? 'latest' : isPre ? 'prerelease' : '';
 
@@ -745,19 +1759,12 @@ async function loadReleases(){
               </div>
             </div>
           </div>
-
           <div class="release-body">${body}</div>
-
           ${assetsHtml}
         </div>
       `;
     }).join('');
-
-    // Привязываем эффект лавы к кнопкам ассетов
-    document.querySelectorAll('.release-assets .asset-item').forEach(attachLavaEffect);
-
   } catch(e){
-    console.error('Ошибка загрузки релизов:', e);
     root.innerHTML = `<div class="release-empty"><i class="fas fa-triangle-exclamation"></i> Не удалось загрузить список релизов. Попробуйте позже.</div>`;
   }
 }
@@ -771,113 +1778,13 @@ function escapeHtml(str){
     .replace(/'/g, '&#039;');
 }
 
-/* ============ РЕНДЕР МАГАЗИНА ============ */
-function renderShop(){
-  const root = document.getElementById('shopCategories');
-  root.innerHTML = CATEGORIES.map(cat => `
-    <div class="category">
-      <div class="cat-header">
-        <div class="cat-icon"><i class="fas ${cat.icon}"></i></div>
-        <h2>${cat.name}</h2>
-        <span class="cat-count">${cat.items.length}</span>
-      </div>
-      <div class="products">
-        ${cat.items.map(p => `
-          <div class="product-row" data-id="${p.id}" data-name="${p.name}" data-price="${p.price}">
-            <div class="p-icon"><i class="fas ${p.icon}"></i></div>
-            <div class="p-info"><h3>${p.name}</h3><p>${p.desc}</p></div>
-            <div class="p-price">${p.price}<small>₽</small></div>
-            <button class="p-buy">Купить</button>
-          </div>
-        `).join('')}
-      </div>
-    </div>
-  `).join('');
-  document.querySelectorAll('.product-row').forEach(row => {
-    row.addEventListener('click', () => handleBuyClick(row));
-  });
-  document.querySelectorAll('.p-buy').forEach(attachLavaEffect);
-}
-
-function handleBuyClick(row){
-  if(!currentUser){ openModal('authModal'); return; }
-  selectedProduct = {id: row.dataset.id, name: row.dataset.name, price: row.dataset.price};
-  document.getElementById('buySub').textContent = selectedProduct.name;
-  document.getElementById('buyAmount').value = selectedProduct.price + ' ₽';
-  document.getElementById('buyNick').value = currentUser.nick;
-  document.getElementById('buyAgree').checked = false;
-  document.getElementById('buySubmit').disabled = true;
-  document.getElementById('offerTextBox').classList.remove('show');
-  document.getElementById('buyError').classList.remove('show');
-  openModal('buyModal');
-}
-
-document.getElementById('showOfferLink').addEventListener('click', function(e){
-  e.preventDefault();
-  document.getElementById('offerTextBox').classList.toggle('show');
-});
-document.getElementById('showPersonalLink').addEventListener('click', function(e){
-  e.preventDefault();
-  const box = document.getElementById('offerTextBox');
-  box.classList.add('show');
-  setTimeout(() => { box.scrollTop = box.scrollHeight; }, 100);
-});
-document.getElementById('buyAgree').addEventListener('change', function(){
-  document.getElementById('buySubmit').disabled = !this.checked;
-});
-
-document.getElementById('buySubmit').addEventListener('click', async function(){
-  const btn = this, err = document.getElementById('buyError');
-  err.classList.remove('show');
-
-  if(!document.getElementById('buyAgree').checked){
-    err.textContent = 'Необходимо принять условия оферты и дать согласие на обработку персональных данных';
-    err.classList.add('show');
-    return;
-  }
-
-  btn.disabled = true; btn.textContent = 'Обработка...';
-  try{
-    const res = await fetch(`${BACKEND_URL}/api/create-payment`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        productId: selectedProduct.id,
-        productName: selectedProduct.name,
-        price: selectedProduct.price,
-        nickname: currentUser.nick,
-        email: currentUser.email || undefined,
-        shopId: 244378
-      })
-    });
-    const data = await res.json();
-    if(data.url){
-      try{
-        await fetch(`${BACKEND_URL}/api/add-operation`, {
-          method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            nick: currentUser.nick,
-            name: selectedProduct.name,
-            sum: selectedProduct.price
-          })
-        });
-      } catch(e){}
-      window.location.href = data.url;
-    } else {
-      err.textContent = data.error || 'Ошибка создания платежа';
-      err.classList.add('show');
-      btn.disabled = false; btn.textContent = 'Перейти к оплате';
-    }
-  } catch(e){
-    err.textContent = 'Ошибка соединения с сервером';
-    err.classList.add('show');
-    btn.disabled = false; btn.textContent = 'Перейти к оплате';
-  }
-});
-
 document.getElementById('loginBtn').addEventListener('click', () => openModal('authModal'));
 document.getElementById('userChip').addEventListener('click', () => switchTab('account'));
 document.getElementById('authClose').addEventListener('click', () => closeModal('authModal'));
-document.getElementById('buyClose').addEventListener('click', () => closeModal('buyModal'));
+document.getElementById('modalClose').addEventListener('click', () => closeModal('paymentModal'));
+
+document.getElementById('infoBtn').addEventListener('click', () => openModal('infoModal'));
+document.getElementById('infoClose').addEventListener('click', () => closeModal('infoModal'));
 
 document.getElementById('goRegister').addEventListener('click', () => {
   document.getElementById('loginForm').style.display = 'none';
@@ -982,14 +1889,14 @@ async function renderAccount(){
     }
   } catch(e){}
 
-  const regDate = new Date(currentUser.registered).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
+  const regDate = new Date(currentUser.registered || Date.now()).toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'});
   const ops = currentUser.operations && currentUser.operations.length
     ? currentUser.operations.map(o => `<div class="op-item"><span>${o.name}</span><span class="op-sum">${o.sum} ₽</span></div>`).join('')
     : '<div class="sub-value">Операций пока нет</div>';
 
   root.innerHTML = `
     <div class="account-grid">
-      <div class="account-block"><h4>Профиль</h4><div class="big-value">${currentUser.nick}</div><div class="sub-value">${currentUser.email}</div></div>
+      <div class="account-block"><h4>Профиль</h4><div class="big-value">${currentUser.nick}</div><div class="sub-value">${currentUser.email || '—'}</div></div>
       <div class="account-block"><h4>Дата регистрации</h4><div class="big-value" style="font-size:1.05rem">${regDate}</div><div class="sub-value">Добро пожаловать на LuarSMP</div></div>
       <div class="account-block" style="grid-column:1/-1">
         <h4>Последние операции</h4>
@@ -997,94 +1904,34 @@ async function renderAccount(){
         <button class="logout-btn" onclick="logout()"><i class="fas fa-right-from-bracket"></i> Выйти</button>
       </div>
     </div>`;
+
+  const lo = root.querySelector('.logout-btn');
+  if (lo) attachDeformEffect(lo);
 }
 
 function switchTab(tab){
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('panel-' + tab).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  const cube = document.getElementById('cube-wrap');
-  cube.classList.remove('pos-left','pos-center','pos-right');
-  if(tab === 'shop') cube.classList.add('pos-left');
-  else if(tab === 'archive') cube.classList.add('pos-center');
-  else cube.classList.add('pos-right');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tab);
+    b.classList.toggle('current', b.dataset.tab === tab);
+  });
   if(tab === 'account') renderAccount();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
-
-function openModal(id){ document.getElementById(id).classList.add('active'); }
-function closeModal(id){ document.getElementById(id).classList.remove('active'); }
-document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', e => { if(e.target === m) m.classList.remove('active'); }));
-
-const themeBtn = document.getElementById('themeBtn');
-let theme = localStorage.getItem('luar_theme') || 'dark';
-document.documentElement.setAttribute('data-theme', theme);
-updateThemeIcon();
-themeBtn.addEventListener('click', () => {
-  theme = theme === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', theme);
-  localStorage.setItem('luar_theme', theme);
-  updateThemeIcon();
-});
-function updateThemeIcon(){ themeBtn.innerHTML = theme === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>'; }
-
-const canvas = document.getElementById('lavaCanvas');
-const ctx = canvas.getContext('2d');
-let drips = [];
-function resizeCanvas(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resizeCanvas(); window.addEventListener('resize', resizeCanvas);
-
-function randomBlob(x, y){
-  const size = Math.random() * 8 + 6, points = [], pts = 5 + Math.floor(Math.random() * 3);
-  for(let i = 0; i < pts; i++){
-    const a = (i / pts) * Math.PI * 2, r = size * (0.6 + Math.random() * 0.7);
-    points.push({x: x + Math.cos(a) * r, y: y + Math.sin(a) * r});
-  }
-  return {points, vx:(Math.random() - 0.5) * 1.5, vy: Math.random() * 1 + 0.5,
-    life:1, decay:0.012 + Math.random() * 0.01,
-    color:`hsl(${200 + Math.random() * 40}, 90%, ${55 + Math.random() * 15}%)`};
-}
-function spawnDrip(x, y, amount = 3){
-  for(let i = 0; i < amount; i++) setTimeout(() => drips.push(randomBlob(x, y)), i * 40);
-}
-function animateLava(){
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  for(let i = drips.length - 1; i >= 0; i--){
-    const d = drips[i];
-    d.points.forEach(p => { p.x += d.vx; p.y += d.vy; });
-    d.vy += 0.08; d.life -= d.decay;
-    if(d.life <= 0){ drips.splice(i, 1); continue; }
-    ctx.beginPath();
-    ctx.moveTo(d.points[0].x, d.points[0].y);
-    for(let j = 1; j < d.points.length; j++){
-      const prev = d.points[j - 1], cur = d.points[j];
-      ctx.quadraticCurveTo(prev.x, prev.y, (prev.x + cur.x) / 2, (prev.y + cur.y) / 2);
-    }
-    ctx.closePath();
-    ctx.globalAlpha = Math.max(0, d.life);
-    ctx.fillStyle = d.color; ctx.shadowColor = d.color; ctx.shadowBlur = 18;
-    ctx.fill(); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
-  }
-  requestAnimationFrame(animateLava);
-}
-animateLava();
-
-function attachLavaEffect(el){
-  el.addEventListener('mousemove', e => {
-    const rect = el.getBoundingClientRect();
-    const dx = (e.clientX - (rect.left + rect.width / 2)) * 0.08;
-    const dy = (e.clientY - (rect.top + rect.height / 2)) * 0.08;
-    el.style.transform = `translate(${dx}px, ${dy}px)`;
-    if(Math.random() < 0.15) spawnDrip(e.clientX, e.clientY, 1);
-  });
-  el.addEventListener('mouseleave', e => { el.style.transform = ''; spawnDrip(e.clientX, e.clientY, 5); });
-  el.addEventListener('click', e => { spawnDrip(e.clientX, e.clientY, 8); });
-}
 
 window.addEventListener('load', async () => {
   renderShop();
   loadReleases();
-  document.querySelectorAll('.submit-btn,.download-btn,.login-btn,.icon-btn,.logout-btn,.tab-btn').forEach(attachLavaEffect);
+
+  [
+    document.getElementById('loginBtn'),
+    document.getElementById('loginSubmit'),
+    document.getElementById('registerSubmit'),
+    document.getElementById('payButton'),
+    document.getElementById('infoBtn')
+  ].forEach(btn => { if (btn) attachDeformEffect(btn); });
 
   const sess = JSON.parse(localStorage.getItem('luar_session') || 'null');
   if(sess){
@@ -1098,7 +1945,6 @@ window.addEventListener('load', async () => {
       }
     } catch(e){}
   }
-  document.getElementById('cube-wrap').classList.add('pos-left');
 });
 </script>
 </body>
